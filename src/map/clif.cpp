@@ -1838,13 +1838,8 @@ void clif_hominfo( map_session_data *sd, struct homun_data *hd, int32 flag ){
 	}else{
 		p.crit = status->cri / 10;
 	}
-#ifdef RENEWAL
 	p.def = status->def + status->def2;
 	p.mdef = status->mdef + status->mdef2;
-#else
-	p.def = status->def + status->vit;
-	p.mdef = status->mdef;
-#endif
 	p.flee = status->flee;
 	p.amotion = (flag) ? 0 : status->amotion;
 	// Homunculus HP and SP bars will screw up if the percentage calculation exceeds signed values
@@ -3698,11 +3693,7 @@ void clif_updatestatus( map_session_data& sd, enum _sp type ){
 				//negative check (in case you have something like Berserk active)
 				int32 mdef2 = pc_rightside_mdef(&sd);
 
-#ifndef RENEWAL
-				clif_par_change(sd, type, mdef2 < 0 ? 0 : mdef2);
-#else
 				clif_par_change(sd, type, mdef2);
-#endif
 			}
 			break;
 		case SP_CRITICAL:
@@ -4125,12 +4116,7 @@ void clif_initialstatus( map_session_data& sd ) {
 	packet.plusdefPower = pc_rightside_def( &sd );
 	packet.mdefPower = pc_leftside_mdef( &sd );
 
-#ifdef RENEWAL
 	packet.plusmdefPower = pc_rightside_mdef( &sd );
-#else
-	// Negative check for Frenzy'ed characters.
-	packet.plusmdefPower = std::max( pc_rightside_mdef( &sd ), 0 );
-#endif
 
 	packet.hitSuccessValue = sd.battle_status.hit;
 	packet.avoidSuccessValue = sd.battle_status.flee;
@@ -4151,7 +4137,6 @@ void clif_initialstatus( map_session_data& sd ) {
 	clif_updatestatus(sd, SP_ATTACKRANGE);
 	clif_updatestatus(sd, SP_ASPD);
 
-#ifdef RENEWAL
 	clif_updatestatus(sd, SP_POW);
 	clif_updatestatus(sd, SP_STA);
 	clif_updatestatus(sd, SP_WIS);
@@ -4173,7 +4158,6 @@ void clif_initialstatus( map_session_data& sd ) {
 	clif_updatestatus(sd, SP_USPL);
 	clif_updatestatus(sd, SP_UCON);
 	clif_updatestatus(sd, SP_UCRT);
-#endif
 }
 
 
@@ -7261,9 +7245,7 @@ void clif_item_refine_list( map_session_data& sd ){
 	refine_item[0] = pc_search_inventory( &sd, ITEMID_PHRACON );
 	refine_item[1] = pc_search_inventory( &sd, ITEMID_EMVERETARCON );
 	refine_item[2] = refine_item[3] = pc_search_inventory( &sd, ITEMID_ORIDECON );
-#ifdef RENEWAL
 	refine_item[4] = -1;
-#endif
 
 	int32 count = 0;
 	for( int32 i = 0; i < MAX_INVENTORY; i++ ){
@@ -8379,7 +8361,6 @@ void clif_autospell( map_session_data& sd, uint16 skill_lv ){
 		uint16 required_autospell_skill_lv;
 	};
 
-#ifdef RENEWAL
 	 const std::vector<s_autospell_requirement> autospell_skills = {
 		{ MG_FIREBOLT, 0 },
 		{ MG_COLDBOLT, 0 },
@@ -8391,17 +8372,6 @@ void clif_autospell( map_session_data& sd, uint16 skill_lv ){
 		{ MG_THUNDERSTORM, 9 },
 		{ WZ_HEAVENDRIVE, 9 }
 	};
-#else
-	const std::vector<s_autospell_requirement> autospell_skills = {
-		{ MG_NAPALMBEAT, 0 },
-		{ MG_COLDBOLT, 1 },
-		{ MG_FIREBOLT, 1 },
-		{ MG_LIGHTNINGBOLT, 1 },
-		{ MG_SOULSTRIKE, 4 },
-		{ MG_FIREBALL, 7 },
-		{ MG_FROSTDIVER, 9 },
-	};
-#endif
 
 #if PACKETVER_MAIN_NUM >= 20181128 || PACKETVER_RE_NUM >= 20181031
 	PACKET_ZC_AUTOSPELLLIST* p = reinterpret_cast<PACKET_ZC_AUTOSPELLLIST*>( packet_buffer );
@@ -9837,14 +9807,12 @@ void clif_refresh(map_session_data *sd)
 	clif_updatestatus(*sd,SP_INT);
 	clif_updatestatus(*sd,SP_DEX);
 	clif_updatestatus(*sd,SP_LUK);
-#ifdef RENEWAL
 	clif_updatestatus(*sd,SP_POW);
 	clif_updatestatus(*sd,SP_STA);
 	clif_updatestatus(*sd,SP_WIS);
 	clif_updatestatus(*sd,SP_SPL);
 	clif_updatestatus(*sd,SP_CON);
 	clif_updatestatus(*sd,SP_CRT);
-#endif
 	if (sd->spiritball)
 		clif_spiritball( &sd->bl, &sd->bl, SELF );
 	clif_millenniumshield_single( *sd, *sd );
@@ -10954,14 +10922,12 @@ void clif_parse_LoadEndAck(int32 fd,map_session_data *sd)
 		clif_updatestatus(*sd,SP_INT);
 		clif_updatestatus(*sd,SP_DEX);
 		clif_updatestatus(*sd,SP_LUK);
-#ifdef RENEWAL
 		clif_updatestatus(*sd,SP_POW);
 		clif_updatestatus(*sd,SP_STA);
 		clif_updatestatus(*sd,SP_WIS);
 		clif_updatestatus(*sd,SP_SPL);
 		clif_updatestatus(*sd,SP_CON);
 		clif_updatestatus(*sd,SP_CRT);
-#endif
 
 		// abort currently running script
 		sd->state.using_fake_npc = 0;
@@ -12154,9 +12120,7 @@ void clif_parse_NpcClicked( int32 fd, map_session_data* sd ){
 	}
 
 	if( pc_cant_act2(sd) || sd->npc_id || pc_hasprogress( sd, WIP_DISABLE_NPC ) ){
-#ifdef RENEWAL
 		clif_msg( sd, MSI_BUSY);
-#endif
 		return;
 	}
 
@@ -12175,12 +12139,10 @@ void clif_parse_NpcClicked( int32 fd, map_session_data* sd ){
 			clif_parse_ActionRequest_sub( *sd, DMG_REPEAT, bl->id, gettick() );
 			break;
 		case BL_NPC:
-#ifdef RENEWAL
 			if (sd->ud.skill_id < RK_ENCHANTBLADE && sd->ud.skilltimer != INVALID_TIMER) { // Should only show an error message for non-3rd job skills with a running timer
 				clif_msg(sd, MSI_BUSY);
 				break;
 			}
-#endif
 			if( bl->m != -1 ){ // the user can't click floating npcs directly (hack attempt)
 				struct npc_data* nd = (struct npc_data*)bl;
 
@@ -12616,12 +12578,10 @@ void clif_parse_ChangeCart(int32 fd,map_session_data *sd)
 	if( !sd || pc_checkskill(sd, MC_CHANGECART) < 1 )
 		return;
 
-#ifdef RENEWAL
 	if (sd->npc_id || pc_hasprogress(sd, WIP_DISABLE_SKILLITEM)) {
 		clif_msg(sd, MSI_BUSY);
 		return;
 	}
-#endif
 
 	type = (int)RFIFOW(fd,packet_db[RFIFOW(fd,0)].pos[0]);
 
@@ -12736,11 +12696,7 @@ static void clif_parse_UseSkillToPos_homun(struct homun_data *hd, map_session_da
 		return;
 	}
 
-#ifdef RENEWAL
 	if (hd->sc.getSCE(SC_BASILICA_CELL))
-#else
-	if (hd->sc.getSCE(SC_BASILICA))
-#endif
 		return;
 	lv = hom_checkskill(hd, skill_id);
 	if( skill_lv > lv )
@@ -12789,11 +12745,7 @@ static void clif_parse_UseSkillToPos_mercenary(s_mercenary_data *md, map_session
 		return;
 	}
 
-#ifdef RENEWAL
 	if (md->sc.getSCE(SC_BASILICA_CELL))
-#else
-	if (md->sc.getSCE(SC_BASILICA))
-#endif
 		return;
 	lv = mercenary_checkskill(md, skill_id);
 	if( skill_lv > lv )
@@ -12841,9 +12793,7 @@ void clif_parse_skill_toid( map_session_data* sd, uint16 skill_id, uint16 skill_
 
 	if( sd->npc_id ){
 		if( pc_hasprogress( sd, WIP_DISABLE_SKILLITEM ) || !sd->npc_item_flag || !( inf & INF_SELF_SKILL ) ){
-#ifdef RENEWAL
 			clif_msg( sd, MSI_BUSY);
-#endif
 			return;
 		}
 	}
@@ -12879,10 +12829,6 @@ void clif_parse_skill_toid( map_session_data* sd, uint16 skill_id, uint16 skill_
 	if( sd->sc.option&OPTION_COSTUME )
 		return;
 
-#ifndef RENEWAL
-	if( sd->sc.getSCE(SC_BASILICA) && (skill_id != HP_BASILICA || sd->sc.getSCE(SC_BASILICA)->val4 != sd->bl.id) )
-		return; // On basilica only caster can use Basilica again to stop it.
-#endif
 
 	if( sd->menuskill_id ) {
 		if( sd->menuskill_id == SA_TAMINGMONSTER ) {
@@ -12956,9 +12902,7 @@ static void clif_parse_UseSkillToPosSub( int32 fd, map_session_data& sd, uint16 
 	}
 
 	if( pc_hasprogress( &sd, WIP_DISABLE_SKILLITEM ) ){
-#ifdef RENEWAL
 		clif_msg( &sd, MSI_BUSY);
-#endif
 		return;
 	}
 
@@ -12994,10 +12938,6 @@ static void clif_parse_UseSkillToPosSub( int32 fd, map_session_data& sd, uint16 
 	if( sd.sc.option&OPTION_COSTUME )
 		return;
 
-#ifndef RENEWAL
-	if( sd.sc.getSCE(SC_BASILICA) && (skill_id != HP_BASILICA || sd.sc.getSCE(SC_BASILICA)->val4 != sd.bl.id) )
-		return; // On basilica only caster can use Basilica again to stop it.
-#endif
 
 	if( sd.menuskill_id ) {
 		if( sd.menuskill_id == SA_TAMINGMONSTER ) {
@@ -21859,11 +21799,7 @@ void clif_weight_limit( map_session_data* sd ){
 
 	WFIFOHEAD(fd, packet_len(0xADE));
 	WFIFOW(fd, 0) = 0xADE;
-#ifdef RENEWAL
 	WFIFOL(fd, 2) = battle_config.natural_heal_weight_rate_renewal;
-#else
-	WFIFOL(fd, 2) = battle_config.natural_heal_weight_rate;
-#endif
 	WFIFOSET(fd, packet_len(0xADE));
 #endif
 }
@@ -22226,12 +22162,10 @@ void clif_parse_equipswitch_request_single( int32 fd, map_session_data* sd ){
 	// Check if the item was already added to equip switch
 	if( sd->inventory.u.items_inventory[index].equipSwitch ){
 		if( sd->npc_id ){
-#ifdef RENEWAL
 			if( pc_hasprogress( sd, WIP_DISABLE_SKILLITEM ) ){
 				clif_msg( sd, MSI_BUSY);
 				return;
 			}
-#endif
 			if( !sd->npc_item_flag ){
 				return;
 			}

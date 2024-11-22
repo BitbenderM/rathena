@@ -70,21 +70,12 @@ int32 db_use_sqldbs = 0;
 char barter_table[32] = "barter";
 char buyingstores_table[32] = "buyingstores";
 char buyingstore_items_table[32] = "buyingstore_items";
-#ifdef RENEWAL
 char item_table[32] = "item_db_re";
 char item2_table[32] = "item_db2_re";
 char mob_table[32] = "mob_db_re";
 char mob2_table[32] = "mob_db2_re";
 char mob_skill_table[32] = "mob_skill_db_re";
 char mob_skill2_table[32] = "mob_skill_db2_re";
-#else
-char item_table[32] = "item_db";
-char item2_table[32] = "item_db2";
-char mob_table[32] = "mob_db";
-char mob2_table[32] = "mob_db2";
-char mob_skill_table[32] = "mob_skill_db";
-char mob_skill2_table[32] = "mob_skill_db2";
-#endif
 char sales_table[32] = "sales";
 char vendings_table[32] = "vendings";
 char vending_items_table[32] = "vending_items";
@@ -4138,11 +4129,7 @@ void map_reloadnpc(bool clear)
 	if (clear)
 		npc_addsrcfile("clear", false); // this will clear the current script list
 
-#ifdef RENEWAL
 	map_reloadnpc_sub("npc/re/scripts_main.conf");
-#else
-	map_reloadnpc_sub("npc/pre-re/scripts_main.conf");
-#endif
 }
 
 int32 inter_config_read(const char *cfgName)
@@ -4164,13 +4151,8 @@ int32 inter_config_read(const char *cfgName)
 
 #define RENEWALPREFIX "renewal-"
 		if (!strncmpi(w1, RENEWALPREFIX, strlen(RENEWALPREFIX))) {
-#ifdef RENEWAL
 			// Move the original name to the beginning of the string
 			memmove(w1, w1 + strlen(RENEWALPREFIX), strlen(w1) - strlen(RENEWALPREFIX) + 1);
-#else
-			// In Pre-Renewal the Renewal specific configurations can safely be ignored
-			continue;
-#endif
 		}
 #undef RENEWALPREFIX
 

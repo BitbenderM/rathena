@@ -6071,10 +6071,8 @@ BUILDIN_FUNC(percentheal)
 	if (!script_charid2sd(4,sd))
 		return SCRIPT_CMD_SUCCESS;
 
-#ifdef RENEWAL
 	if( sd->sc.getSCE(SC_EXTREMITYFIST) )
 		sp = 0;
-#endif
 
 	if (sd->sc.getSCE(SC_NORECOVER_STATE)) {
 		hp = 0;
@@ -11052,10 +11050,8 @@ BUILDIN_FUNC(getexp){
 		job = (int64) cap_value(job * bonus, 0, MAX_EXP);
 
 	pc_gainexp(sd, nullptr, base, job, 1);
-#ifdef RENEWAL
 	if (base && sd->hd)
 		hom_gainexp(sd->hd, base * battle_config.homunculus_exp_gain / 100); // Homunculus only receive 10% of EXP
-#endif
 
 	return SCRIPT_CMD_SUCCESS;
 }
@@ -14661,11 +14657,7 @@ BUILDIN_FUNC(getiteminfo)
 		case ITEMINFO_ALIASNAME: script_pushint(st, i_data->view_id); break;
 		case ITEMINFO_EQUIPLEVELMAX: script_pushint(st, i_data->elvmax); break;
 		case ITEMINFO_MAGICATTACK: {
-#ifdef RENEWAL
 			script_pushint(st, i_data->matk);
-#else
-			script_pushint(st, 0);
-#endif
 			break;
 		}
 		case ITEMINFO_ID: script_pushint(st, i_data->nameid); break;
@@ -14750,11 +14742,7 @@ BUILDIN_FUNC(setiteminfo)
 		case ITEMINFO_ALIASNAME: i_data->view_id = static_cast<t_itemid>(value); break;
 		case ITEMINFO_EQUIPLEVELMAX: i_data->elvmax = static_cast<uint16>(value); break;
 		case ITEMINFO_MAGICATTACK: {
-#ifdef RENEWAL
 			i_data->matk = static_cast<uint32>(value);
-#else
-			value = 0;
-#endif
 			break;
 		}
 		case ITEMINFO_SUBTYPE: i_data->subtype = static_cast<uint8>(value); break;
@@ -22867,11 +22855,7 @@ BUILDIN_FUNC(checkre)
 	num=script_getnum(st,2);
 	switch(num){
 		case 0:
-			#ifdef RENEWAL
 				script_pushint(st, 1);
-			#else
-				script_pushint(st, 0);
-			#endif
 			break;
 		case 1:
 			#ifdef RENEWAL_CAST

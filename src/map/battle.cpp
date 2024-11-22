@@ -379,9 +379,6 @@ int32 battle_delay_damage(t_tick tick, int32 amotion, struct block_list *src, st
 
 	if( ((d_tbl && check_distance_bl(target, d_tbl, sc->getSCE(SC_DEVOTION)->val3)) || e_tbl) &&
 		damage > 0 && skill_id != CR_REFLECTSHIELD
-#ifndef RENEWAL
-		&& skill_id != PA_PRESSURE
-#endif
 		) {
 		map_session_data* tsd = BL_CAST( BL_PC, target );
 
@@ -471,27 +468,15 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 		switch(atk_elem){
 			case ELE_FIRE:
 				if (sc->getSCE(SC_VOLCANO))
-#ifdef RENEWAL
 					ratio += sc->getSCE(SC_VOLCANO)->val3;
-#else
-					damage += (int64)((damage*sc->getSCE(SC_VOLCANO)->val3) / 100);
-#endif
 				break;
 			case ELE_WIND:
 				if (sc->getSCE(SC_VIOLENTGALE))
-#ifdef RENEWAL
 					ratio += sc->getSCE(SC_VIOLENTGALE)->val3;
-#else
-					damage += (int64)((damage*sc->getSCE(SC_VIOLENTGALE)->val3) / 100);
-#endif
 				break;
 			case ELE_WATER:
 				if (sc->getSCE(SC_DELUGE))
-#ifdef RENEWAL
 					ratio += sc->getSCE(SC_DELUGE)->val3;
-#else
-					damage += (int64)((damage*sc->getSCE(SC_DELUGE)->val3) / 100);
-#endif
 				break;
 			case ELE_GHOST:
 				if (sc->getSCE(SC_TELEKINESIS_INTENSE)) {
@@ -532,11 +517,7 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 		switch(atk_elem) {
 			case ELE_FIRE:
 				if (tsc->getSCE(SC_SPIDERWEB)) { //Double damage
-#ifdef RENEWAL
 					ratio += 100;
-#else
-					damage *= 2;
-#endif
 					//Remove a unit group or end whole status change
 					status_change_end(target, SC_SPIDERWEB);
 				}
@@ -545,107 +526,55 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 				if (tsc->getSCE(SC_CRYSTALIZE))
 					status_change_end(target, SC_CRYSTALIZE);
 				if (tsc->getSCE(SC_EARTH_INSIGNIA))
-#ifdef RENEWAL
 					ratio += 50;
-#else
-					damage += (int64)(damage * 50 / 100);
-#endif
 				if( tsc->getSCE(SC_WIDEWEB) ) {
-#ifdef RENEWAL
 					ratio += 100;
-#else
-					damage *= 2;
-#endif
 					status_change_end(target,SC_WIDEWEB);
 				}
 				if( tsc->getSCE(SC_BURNT) ) {
-#ifdef RENEWAL
 					ratio += 400;
-#else
-					damage += (int64)(damage * 400 / 100);
-#endif
 				}
 				break;
 			case ELE_HOLY:
 				if (tsc->getSCE(SC_ORATIO))
-#ifdef RENEWAL
 					ratio += tsc->getSCE(SC_ORATIO)->val1 * 2;
-#else
-					damage += (int64)(damage * (tsc->getSCE(SC_ORATIO)->val1 * 2) / 100);
-#endif
 				break;
 			case ELE_POISON:
 				if (tsc->getSCE(SC_VENOMIMPRESS))
-#ifdef RENEWAL
 					ratio += tsc->getSCE(SC_VENOMIMPRESS)->val2;
-#else
-					damage += (int64)(damage * tsc->getSCE(SC_VENOMIMPRESS)->val2 / 100);
-#endif
 				if (tsc->getSCE(SC_CLOUD_POISON)) {
-#ifdef RENEWAL
 					ratio += 5 * tsc->getSCE(SC_CLOUD_POISON)->val1;
-#else
-					damage += (int64)(damage * 5 * tsc->getSCE(SC_CLOUD_POISON)->val1 / 100);
-#endif
 				}
 				break;
 			case ELE_WIND:
 				if (tsc->getSCE(SC_WATER_INSIGNIA))
-#ifdef RENEWAL
 					ratio += 50;
-#else
-					damage += (int64)(damage * 50 / 100);
-#endif
 				if (tsc->getSCE(SC_CRYSTALIZE)) {
 					uint16 skill_id = battle_getcurrentskill(src);
 
 					if (skill_get_type(skill_id)&BF_MAGIC)
-#ifdef RENEWAL
 						ratio += 50;
-#else
-						damage += (int64)(damage * 50 / 100);
-#endif
 				}
 				break;
 			case ELE_WATER:
 				if (tsc->getSCE(SC_FIRE_INSIGNIA))
-#ifdef RENEWAL
 					ratio += 50;
-#else
-					damage += (int64)(damage * 50 / 100);
-#endif
 				break;
 			case ELE_EARTH:
 				if (tsc->getSCE(SC_WIND_INSIGNIA))
-#ifdef RENEWAL
 					ratio += 50;
-#else
-					damage += (int64)(damage * 50 / 100);
-#endif
 				status_change_end(target, SC_MAGNETICFIELD); //freed if received earth dmg
 				break;
 			case ELE_NEUTRAL:
 				if (tsc->getSCE(SC_ANTI_M_BLAST))
-#ifdef RENEWAL
 					ratio += tsc->getSCE(SC_ANTI_M_BLAST)->val2;
-#else
-					damage += (int64)(damage * tsc->getSCE(SC_ANTI_M_BLAST)->val2 / 100);
-#endif
 				break;
 			case ELE_DARK:
 				if (tsc->getSCE(SC_SOULCURSE)) {
 					if (status_get_class_(target) == CLASS_BOSS)
-#ifdef RENEWAL
 						ratio += 20;
-#else
-						damage += (int64)(damage * 20 / 100);
-#endif
 					else
-#ifdef RENEWAL
 						ratio += 100;
-#else
-						damage *= 2;
-#endif
 				}
 				break;
 		}
@@ -654,12 +583,8 @@ int64 battle_attr_fix(struct block_list *src, struct block_list *target, int64 d
 	if (battle_config.attr_recover == 0 && !(flag & 1) && ratio < 0)
 		ratio = 0;
 
-#ifdef RENEWAL
 	//In renewal, reductions are always rounded down so damage can never reach 0 unless ratio is 0
 	damage = damage - (int64)((damage * (100 - ratio)) / 100);
-#else
-	damage = (int64)((damage*ratio)/100);
-#endif
 
 	//Damage can be negative, see battle_config.attr_recover
 	return damage;
@@ -755,7 +680,6 @@ int32 battle_calc_cardfix(int32 attack_type, struct block_list *src, struct bloc
 			// Affected by attacker ATK bonuses
 			if( sd && !nk[NK_IGNOREATKCARD] ) {
 				int32 race2_val = 0;
-#ifdef RENEWAL
 
 // Simplified formula to round down the damage
 #define APPLY_CARDFIX_RE(damage, fix) { (damage) = (damage) - (int64)(((damage) * (100 - max(0, 100+(fix)))) / 100); }
@@ -792,25 +716,6 @@ int32 battle_calc_cardfix(int32 attack_type, struct block_list *src, struct bloc
 #undef APPLY_CARDFIX_RE
 
 // Pre-renewal / old renewal behaviour
-#else
-				for (const auto &raceit : t_race2)
-					race2_val += sd->indexed_bonus.magic_addrace2[raceit];
-				cardfix = cardfix * (100 + sd->indexed_bonus.magic_addrace[tstatus->race] + sd->indexed_bonus.magic_addrace[RC_ALL] + race2_val) / 100;
-				if( !nk[NK_IGNOREELEMENT] ) { // Affected by Element modifier bonuses
-					cardfix = cardfix * (100 + sd->indexed_bonus.magic_addele[tstatus->def_ele] + sd->indexed_bonus.magic_addele[ELE_ALL] +
-						sd->indexed_bonus.magic_addele_script[tstatus->def_ele] + sd->indexed_bonus.magic_addele_script[ELE_ALL]) / 100;
-					cardfix = cardfix * (100 + sd->indexed_bonus.magic_atk_ele[rh_ele] + sd->indexed_bonus.magic_atk_ele[ELE_ALL]) / 100;
-				}
-				cardfix = cardfix * (100 + sd->indexed_bonus.magic_addsize[tstatus->size] + sd->indexed_bonus.magic_addsize[SZ_ALL]) / 100;
-				cardfix = cardfix * (100 + sd->indexed_bonus.magic_addclass[tstatus->class_] + sd->indexed_bonus.magic_addclass[CLASS_ALL]) / 100;
-				for (const auto &it : sd->add_mdmg) {
-					if (it.id == t_class) {
-						cardfix = cardfix * (100 + it.val) / 100;
-						break;
-					}
-				}
-				APPLY_CARDFIX(damage, cardfix);
-#endif
 			}
 
 			// Affected by target DEF bonuses
@@ -831,11 +736,6 @@ int32 battle_calc_cardfix(int32 attack_type, struct block_list *src, struct bloc
 					}
 					if (s_defele != ELE_NONE)
 						ele_fix += tsd->indexed_bonus.magic_subdefele[s_defele] + tsd->indexed_bonus.magic_subdefele[ELE_ALL];
-#ifndef RENEWAL
-					// Custom to follow SC_ debuff renewal behavior
-					if (tsc != nullptr)
-						ele_fix += battle_calc_cardfix_debuff( *tsc, rh_ele );
-#endif
 					cardfix = cardfix * (100 - ele_fix) / 100;
 				}
 				cardfix = cardfix * (100 - tsd->indexed_bonus.subsize[sstatus->size] - tsd->indexed_bonus.subsize[SZ_ALL]) / 100;
@@ -865,13 +765,6 @@ int32 battle_calc_cardfix(int32 attack_type, struct block_list *src, struct bloc
 						break;
 					}
 				}
-#ifndef RENEWAL
-				//It was discovered that ranged defense also counts vs magic! [Skotlex]
-				if( flag&BF_SHORT )
-					cardfix = cardfix * (100 - tsd->bonus.near_attack_def_rate) / 100;
-				else if (!nk[NK_IGNORELONGCARD])
-					cardfix = cardfix * (100 - tsd->bonus.long_attack_def_rate) / 100;
-#endif
 				cardfix = cardfix * (100 - tsd->bonus.magic_def_rate) / 100;
 
 				if( tsc->getSCE(SC_MDEF_RATE) )
@@ -997,10 +890,6 @@ int32 battle_calc_cardfix(int32 attack_type, struct block_list *src, struct bloc
 						cardfix = cardfix * (100 + sd->right_weapon.addclass[tstatus->class_] + sd->left_weapon.addclass[tstatus->class_] +
 							sd->right_weapon.addclass[CLASS_ALL] + sd->left_weapon.addclass[CLASS_ALL]) / 100;
 					}
-#ifndef RENEWAL
-					if( sd->status.weapon == W_KATAR && (skill = pc_checkskill(sd,ASC_KATAR)) > 0 ) // Adv. Katar Mastery functions similar to a +%ATK card on official [helvetica]
-						cardfix = cardfix * (100 + (10 + 2 * skill)) / 100;
-#endif
 				}
 
 				//! CHECKME: These right & left hand weapon ignores 'left_cardfix_to_right'?
@@ -1018,12 +907,6 @@ int32 battle_calc_cardfix(int32 attack_type, struct block_list *src, struct bloc
 						}
 					}
 				}
-#ifndef RENEWAL
-				if (flag & BF_SHORT)
-					cardfix = cardfix * (100 + sd->bonus.short_attack_atk_rate) / 100;
-				if( flag&BF_LONG )
-					cardfix = cardfix * (100 + sd->bonus.long_attack_atk_rate) / 100;
-#endif
 				if (left&1) {
 					APPLY_CARDFIX(damage, cardfix_);
 				} else {
@@ -1392,12 +1275,10 @@ bool battle_status_block_damage(struct block_list *src, struct block_list *targe
 					skill_delunitgroup(group);
 					break;
 				}
-#ifdef RENEWAL
 				if (group->val3 - damage > 0)
 					group->val3 -= static_cast<int>(cap_value(damage, INT_MIN, INT_MAX));
 				else
 					skill_delunitgroup(group);
-#endif
 				break;
 			case MH_STEINWAND:
 				if (--group->val2 <= 0) {
@@ -1416,11 +1297,7 @@ bool battle_status_block_damage(struct block_list *src, struct block_list *targe
 	}
 
 	if ((sc->getSCE(SC_PNEUMA) && (flag&(BF_MAGIC | BF_LONG)) == BF_LONG) ||
-#ifdef RENEWAL
 		(sc->getSCE(SC_BASILICA_CELL)
-#else
-		(sc->getSCE(SC_BASILICA)
-#endif
 		&& !status_bl_has_mode(src, MD_STATUSIMMUNE) && skill_id != SP_SOULEXPLOSION) ||
 		(sc->getSCE(SC_ZEPHYR) && !(flag&BF_MAGIC && skill_id) && !(skill_get_inf(skill_id)&(INF_GROUND_SKILL | INF_SELF_SKILL))) ||
 		sc->getSCE(SC__MANHOLE) ||
@@ -1494,22 +1371,14 @@ bool battle_status_block_damage(struct block_list *src, struct block_list *targe
 		} else {
 			clif_skill_nodamage(target, *target, CR_AUTOGUARD, sce->val1);
 			unit_set_walkdelay(target, gettick(), delay, 1);
-#ifdef RENEWAL
 			if (sc->getSCE(SC_SHRINK))
 				sc_start(target, src, SC_STUN, 50, skill_lv, skill_get_time2(skill_id, skill_lv));
-#else
-			if (sc->getSCE(SC_SHRINK) && rnd() % 100 < 5 * sce->val1)
-				skill_blown(target, src, skill_get_blewcount(CR_SHRINK, 1), -1, BLOWN_NONE);
-#endif
 			d->dmg_lv = ATK_MISS;
 			return false;
 		}
 	}
 
 	if (sc->getSCE(SC_NEUTRALBARRIER) && ((flag&(BF_LONG|BF_MAGIC)) == BF_LONG
-#ifndef RENEWAL
-		|| skill_id == CR_ACIDDEMONSTRATION
-#endif
 		)) {
 		d->dmg_lv = ATK_MISS;
 		return false;
@@ -1559,9 +1428,6 @@ bool battle_status_block_damage(struct block_list *src, struct block_list *targe
 	if ((sce = sc->getSCE(SC_KAUPE)) && (skill_id != NPC_EARTHQUAKE || (skill_id == NPC_EARTHQUAKE && flag & NPC_EARTHQUAKE_FLAG)) && rnd() % 100 < sce->val2) { //Kaupe blocks damage (skill or otherwise) from players, mobs, homuns, mercenaries.
 		clif_specialeffect(target, EF_STORMKICK4, AREA);
 		//Shouldn't end until Breaker's non-weapon part connects.
-#ifndef RENEWAL
-		if (skill_id != ASC_BREAKER || !(flag&BF_WEAPON))
-#endif
 			if (--sce->val3 <= 0) //We make it work like Safety Wall, even though it only blocks 1 time.
 				status_change_end(target, SC_KAUPE);
 		return false;
@@ -1652,10 +1518,6 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 	}
 
 	switch (skill_id) {
-#ifndef RENEWAL
-		case PA_PRESSURE:
-		case HW_GRAVITATION:
-#endif
 		case SP_SOULEXPLOSION:
 			// Adjust these based on any possible PK damage rates.
 			if (battle_config.pk_mode == 1 && map_getmapflag(bl->m, MF_PVP) > 0)
@@ -1678,10 +1540,8 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 
 	if( tsc != nullptr && !tsc->empty() ) {
 		// Damage increasing effects
-#ifdef RENEWAL // Flat +400% damage from melee
 		if (tsc->getSCE(SC_KAITE) && (flag&(BF_SHORT|BF_MAGIC)) == BF_SHORT)
 			damage *= 4;
-#endif
 
 		if (tsc->getSCE(SC_GROUNDGRAVITY) && flag&(BF_MAGIC|BF_WEAPON))
 			damage += damage * 10 / 100;
@@ -1692,20 +1552,15 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			if (src->type != BL_MER || !skill_id)
 				damage *= 2; // Lex Aeterna only doubles damage of regular attacks from mercenaries
 
-#ifndef RENEWAL
-			if( skill_id != ASC_BREAKER || !(flag&BF_WEAPON) )
-#endif
 				status_change_end(bl, SC_AETERNA); //Shouldn't end until Breaker's non-weapon part connects.
 		}
 
-#ifdef RENEWAL
 		if( tsc->getSCE(SC_RAID) ) {
 			if (status_get_class_(bl) == CLASS_BOSS)
 				damage += damage * 15 / 100;
 			else
 				damage += damage * 30 / 100;
 		}
-#endif
 
 		if( damage ) {
 			if( tsc->getSCE(SC_DEEPSLEEP) ) {
@@ -1766,22 +1621,10 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 
 		// Damage reductions
 		// Assumptio increases DEF on RE mode, otherwise gives a reduction on the final damage. [Igniz]
-#ifndef RENEWAL
-		if( tsc->getSCE(SC_ASSUMPTIO) ) {
-			if( map_flag_vs(bl->m) )
-				damage = (int64)damage*2/3; //Receive 66% damage
-			else
-				damage /= 2; //Receive 50% damage
-		}
-#endif
 
 		if (tsc->getSCE(SC_DEFENDER) &&
 			skill_id != NJ_ZENYNAGE && skill_id != KO_MUCHANAGE &&
-#ifdef RENEWAL
 			((flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON) || skill_id == GN_FIRE_EXPANSION_ACID))
-#else
-			(flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON))
-#endif
 			damage -= damage * tsc->getSCE(SC_DEFENDER)->val2 / 100;
 
 		if(tsc->getSCE(SC_ADJUSTMENT) && (flag&(BF_LONG|BF_WEAPON)) == (BF_LONG|BF_WEAPON))
@@ -1823,11 +1666,7 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 			damage /= tsc->getSCE(SC_ARMOR)->val2;
 
 		if( tsc->getSCE(SC_ENERGYCOAT) && (skill_id == GN_HELLS_PLANT_ATK ||
-#ifdef RENEWAL
 			((flag&BF_WEAPON || flag&BF_MAGIC) && skill_id != WS_CARTTERMINATION)
-#else
-			(flag&BF_WEAPON && skill_id != WS_CARTTERMINATION)
-#endif
 			) )
 		{
 			status_data* status = status_get_status_data(*bl);
@@ -1864,11 +1703,9 @@ int64 battle_calc_damage(struct block_list *src,struct block_list *bl,struct Dam
 				damage -= damage * tsc->getSCE(SC_GVG_GOLEM)->val4 / 100;
 		}
 
-#ifdef RENEWAL
 		// Renewal: steel body reduces all incoming damage to 1/10 [helvetica]
 		if( tsc->getSCE(SC_STEELBODY) )
 			damage = damage > 10 ? damage / 10 : 1;
-#endif
 
 		//Finally added to remove the status of immobile when Aimed Bolt is used. [Jobbie]
 		if( skill_id == RA_AIMEDBOLT && (tsc->getSCE(SC_BITE) || tsc->getSCE(SC_ANKLE) || tsc->getSCE(SC_ELECTRICSHOCKER)) ) {
@@ -2218,11 +2055,7 @@ int64 battle_addmastery(map_session_data *sd,struct block_list *target,int64 dmg
 	status_data* status = status_get_status_data(*target);
 	int32 weapon, skill;
 
-#ifdef RENEWAL
 	damage = 0;
-#else
-	damage = dmg;
-#endif
 
 	nullpo_ret(sd);
 
@@ -2243,11 +2076,9 @@ int64 battle_addmastery(map_session_data *sd,struct block_list *target,int64 dmg
 			damage += sd->status.str;
 	}
 
-#ifdef RENEWAL
 	//Weapon Research bonus applies to all weapons
 	if((skill = pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0)
 		damage += (skill * 2);
-#endif
 
 	if ((skill = pc_checkskill(sd, NV_BREAKTHROUGH)) > 0)
 		damage += 15 * skill + (skill > 4 ? 25 : 0);
@@ -2268,10 +2099,8 @@ int64 battle_addmastery(map_session_data *sd,struct block_list *target,int64 dmg
 
 	switch(weapon) {
 		case W_1HSWORD:
-#ifdef RENEWAL
 			if((skill = pc_checkskill(sd,AM_AXEMASTERY)) > 0)
 				damage += (skill * 3);
-#endif
 		case W_DAGGER:
 			if((skill = pc_checkskill(sd,SM_SWORD)) > 0)
 				damage += (skill * 4);
@@ -2361,7 +2190,6 @@ static void battle_add_weapon_damage(map_session_data *sd, int64 *damage, int32 
 	}
 }
 
-#ifdef RENEWAL
 static int32 battle_calc_sizefix(int64 damage, map_session_data *sd, unsigned char t_size, unsigned char weapon_type, short flag)
 {
 	if (sd && !sd->special_state.no_sizefix && !flag) // Size fix only for players
@@ -2431,7 +2259,6 @@ static int32 battle_calc_base_weapon_attack(struct block_list *src, struct statu
 
 	return (int)cap_value(damage, INT_MIN, INT_MAX);
 }
-#endif
 
 /*==========================================
  * Calculates the standard damage of a normal attack assuming it hits
@@ -2462,10 +2289,6 @@ static int64 battle_calc_base_damage(struct block_list *src, struct status_data 
 	sd = BL_CAST(BL_PC, src);
 
 	if (!sd) { //Mobs/Pets
-#ifndef RENEWAL
-		if (sc != nullptr && sc->getSCE(SC_CHANGE) != nullptr)
-			return status->matk_max; // [Aegis] simply uses raw max matk for base damage when Mental Charge active
-#endif
 		if(flag&BDMG_MAGIC) {
 			atkmin = status->matk_min;
 			atkmax = status->matk_max;
@@ -2561,10 +2384,8 @@ static int64 battle_calc_base_damage(struct block_list *src, struct status_data 
 	if (sd)
 		battle_add_weapon_damage(sd, &damage, type);
 
-#ifdef RENEWAL
 	if (flag&BDMG_CRIT)
 		damage = (damage * 14) / 10;
-#endif
 
 	return damage;
 }
@@ -2616,10 +2437,8 @@ static int32 battle_range_type(struct block_list *src, struct block_list *target
 			if (src->type == BL_MOB)
 				return BF_SHORT;
 			break;
-#ifdef RENEWAL
 		case KN_BRANDISHSPEAR:
 		// Renewal changes to ranged physical damage
-#endif
 		case SR_RAMPAGEBLASTER:
 		case BO_ACIDIFIED_ZONE_WATER_ATK:
 		case BO_ACIDIFIED_ZONE_FIRE_ATK:
@@ -2785,9 +2604,7 @@ static int32 battle_skill_damage(struct block_list *src, struct block_list *targ
  * @return Bonus value based on party count
  */
 int32 battle_calc_chorusbonus(map_session_data *sd) {
-#ifdef RENEWAL // No bonus in renewal
 	return 0;
-#endif
 
 	int32 members = 0;
 
@@ -2986,18 +2803,12 @@ static bool is_attack_critical(struct Damage* wd, struct block_list *src, struct
 				break;
 			case SN_SHARPSHOOTING:
 			case MA_SHARPSHOOTING:
-#ifdef RENEWAL
 				cri += 300; // !TODO: Confirm new bonus
-#else
-				cri += 200;
-#endif
 				break;
 			case NJ_KIRIKAGE:
 				cri += 250 + 50*skill_lv;
 				break;
-#ifdef RENEWAL
 			case ASC_BREAKER:
-#endif
 			case GC_CROSSIMPACT:
 			case SHC_SAVAGE_IMPACT:
 			case SHC_ETERNAL_SLASH:
@@ -3046,9 +2857,6 @@ static int32 is_attack_piercing(struct Damage* wd, struct block_list *src, struc
 		status_data* tstatus = status_get_status_data(*target);
 
 		if( skill_id != PA_SACRIFICE && skill_id != CR_GRANDCROSS && skill_id != NPC_GRANDDARKNESS && skill_id != PA_SHIELDCHAIN && skill_id != KO_HAPPOKUNAI
-#ifndef RENEWAL
-			&& !is_attack_critical(wd, src, target, skill_id, skill_lv, false)
-#endif
 		)
 		{ //Elemental/Racial adjustments
 			if( sd && (sd->right_weapon.def_ratio_atk_ele & (1<<tstatus->def_ele) || sd->right_weapon.def_ratio_atk_ele & (1<<ELE_ALL) ||
@@ -3130,11 +2938,7 @@ static bool is_attack_hitting(struct Damage* wd, struct block_list *src, struct 
 		return false;
 
 	flee = tstatus->flee;
-#ifdef RENEWAL
 	hitrate = 0; //Default hitrate
-#else
-	hitrate = 80; //Default hitrate
-#endif
 
 	if(battle_config.agi_penalty_type && battle_config.agi_penalty_target&target->type) {
 		unsigned char attacker_count = unit_counttargeted(target); //256 max targets should be a sane max
@@ -3158,10 +2962,8 @@ static bool is_attack_hitting(struct Damage* wd, struct block_list *src, struct 
 	if(sd && is_skill_using_arrow(src, skill_id))
 		hitrate += sd->bonus.arrow_hit;
 
-#ifdef RENEWAL
 	if (sd) //in Renewal hit bonus from Vultures Eye is not anymore shown in status window
 		hitrate += pc_checkskill(sd,AC_VULTURE);
-#endif
 
 	if(skill_id) {
 		switch(skill_id) { //Hit skill modifiers
@@ -3211,17 +3013,11 @@ static bool is_attack_hitting(struct Damage* wd, struct block_list *src, struct 
 				break;
 			case AS_SONICBLOW:
 				if(sd && pc_checkskill(sd,AS_SONICACCEL) > 0)
-#ifdef RENEWAL
 					hitrate += hitrate * 90 / 100;
-#else
-					hitrate += hitrate * 50 / 100;
-#endif
 				break;
-#ifdef RENEWAL
 			case RG_BACKSTAP:
 				hitrate += skill_lv; // !TODO: What's the rate increase?
 				break;
-#endif
 			case RK_SONICWAVE:
 				hitrate += hitrate * 3 * skill_lv / 100; // !TODO: Confirm the hitrate bonus
 				break;
@@ -3293,11 +3089,6 @@ static bool attack_ignores_def(struct Damage* wd, struct block_list *src, struct
 	map_session_data *sd = BL_CAST(BL_PC, src);
 	std::bitset<NK_MAX> nk = battle_skill_get_damage_properties(skill_id, wd->miscflag);
 
-#ifndef RENEWAL
-	if (is_attack_critical(wd, src, target, skill_id, skill_lv, false))
-		return true;
-	else
-#endif
 	if (sc && sc->getSCE(SC_FUSION))
 		return true;
 
@@ -3368,19 +3159,12 @@ static bool battle_skill_stacks_masteries_vvs(uint16 skill_id, e_bonus_chk_flag 
 		case LG_EARTHDRIVE:
 		case NPC_DRAGONBREATH:
 			return false;
-#ifndef RENEWAL
-		case LK_SPIRALPIERCE:
-			// In Pre-Renewal Spiral Pierce is influenced only by refine bonus and Star Crumbs for players
-			if (chk_flag != BCHK_REFINE && chk_flag != BCHK_STAR)
-				return false;
-#endif
 			break;
 	}
 
 	return true;
 }
 
-#ifdef RENEWAL
 /*========================================
  * Calculate equipment ATK for renewal ATK
  *----------------------------------------
@@ -3408,7 +3192,6 @@ static int32 battle_calc_equip_attack(struct block_list *src, int32 skill_id)
 	}
 	return 0; // shouldn't happen but just in case
 }
-#endif
 
 /*========================================
  * Returns the element type of attack
@@ -3513,10 +3296,8 @@ int32 battle_get_weapon_element(struct Damage* wd, struct block_list *src, struc
 	if (calc_for_damage_only)
 		return element;
 
-#ifdef RENEWAL
 	if (skill_id == CR_SHIELDBOOMERANG)
 		element = ELE_NEUTRAL;
-#endif
 
 	return element;
 }
@@ -3612,15 +3393,9 @@ int32 battle_get_misc_element(struct block_list* src, struct block_list* target,
 #define ATK_ADD(damage, damage2, a) do { int64 rate_ = (a); (damage) += rate_; if(is_attack_left_handed(src, skill_id)) (damage2) += rate_; } while(0);
 #define ATK_ADD2(damage, damage2, a , b) do { int64 rate_ = (a), rate2_ = (b); (damage) += rate_; if(is_attack_left_handed(src, skill_id)) (damage2) += rate2_; } while(0);
 
-#ifdef RENEWAL
 	#define RE_ALLATK_ADD(wd, a) do { int64 a_ = (a); ATK_ADD((wd)->statusAtk, (wd)->statusAtk2, a_); ATK_ADD((wd)->weaponAtk, (wd)->weaponAtk2, a_); ATK_ADD((wd)->equipAtk, (wd)->equipAtk2, a_); ATK_ADD((wd)->masteryAtk, (wd)->masteryAtk2, a_); } while(0);
 	#define RE_ALLATK_RATE(wd, a) do { int64 a_ = (a); ATK_RATE((wd)->statusAtk, (wd)->statusAtk2, a_); ATK_RATE((wd)->weaponAtk, (wd)->weaponAtk2, a_); ATK_RATE((wd)->equipAtk, (wd)->equipAtk2, a_); ATK_RATE((wd)->masteryAtk, (wd)->masteryAtk2, a_); } while(0);
 	#define RE_ALLATK_ADDRATE(wd, a) do { int64 a_ = (a); ATK_ADDRATE((wd)->statusAtk, (wd)->statusAtk2, a_); ATK_ADDRATE((wd)->weaponAtk, (wd)->weaponAtk2, a_); ATK_ADDRATE((wd)->equipAtk, (wd)->equipAtk2, a_); ATK_ADDRATE((wd)->masteryAtk, (wd)->masteryAtk2, a_); } while(0);
-#else
-	#define RE_ALLATK_ADD(wd, a) {;}
-	#define RE_ALLATK_RATE(wd, a) {;}
-	#define RE_ALLATK_ADDRATE(wd, a) {;}
-#endif
 
 /**
  * Cap both damage and basedamage of damage struct to a minimum value
@@ -3632,9 +3407,6 @@ int32 battle_get_misc_element(struct block_list* src, struct block_list* target,
 static void battle_min_damage(struct Damage &wd, struct block_list &src, uint16 skill_id, int64 min) {
 	if (is_attack_right_handed(&src, skill_id)) {
 		wd.damage = cap_value(wd.damage, min, INT64_MAX);
-#ifndef RENEWAL
-		wd.basedamage = cap_value(wd.basedamage, min, INT64_MAX);
-#endif
 	}
 	// Left-hand damage is always capped to 0
 	if (is_attack_left_handed(&src, skill_id)) {
@@ -3663,18 +3435,13 @@ static int32 battle_get_spiritball_damage(struct Damage& wd, struct block_list& 
 
 	switch (skill_id) {
 		case MO_INVESTIGATE:
-#ifndef RENEWAL
-		case MO_FINGEROFFENSIVE:
-#endif
 			// These skills used as many spheres as they do hits
 			damage = (wd.div_ + sd->spiritball) * 3;
 			break;
-#ifdef RENEWAL
 		case MO_FINGEROFFENSIVE:
 			// These skills store the spheres used in spiritball_old
 			damage = (sd->spiritball_old + sd->spiritball) * 3;
 			break;
-#endif
 		case MO_EXTREMITYFIST:
 			// These skills store the number of spheres the player had before cast
 			damage = sd->spiritball_old * 3;
@@ -3722,27 +3489,21 @@ static void battle_calc_element_damage(struct Damage* wd, struct block_list *src
 			default:
 				if (skill_id == 0 && (battle_config.attack_attr_none & src->type))
 					return; // Non-player basic attacks are non-elemental, they deal 100% against all defense elements
-#ifdef RENEWAL
 				if (sd == nullptr) { // Renewal player's elemental damage calculation is already done before this point, only calculate for everything else
-#endif
 					wd->damage = battle_attr_fix(src, target, wd->damage, right_element, tstatus->def_ele, tstatus->ele_lv, 1);
 					if (is_attack_left_handed(src, skill_id))
 						wd->damage2 = battle_attr_fix(src, target, wd->damage2, left_element, tstatus->def_ele, tstatus->ele_lv, 1);
-#ifdef RENEWAL
 				}
-#endif
 				break;
 		}
 
 		// Forced to neutral skills [helvetica]
 		// Skills forced to neutral gain benefits from weapon element but final damage is considered "neutral" and resistances are applied again
 		switch (skill_id) {
-#ifdef RENEWAL
 			case MO_INVESTIGATE:
 			case MO_EXTREMITYFIST:
 			case CR_SHIELDBOOMERANG:
 			case PA_SHIELDCHAIN:
-#endif
 			case MC_CARTREVOLUTION:
 			case HW_MAGICCRASHER:
 			case SR_FALLENEMPIRE:
@@ -3756,69 +3517,6 @@ static void battle_calc_element_damage(struct Damage* wd, struct block_list *src
 		}
 	}
 
-#ifndef RENEWAL
-	// These mastery bonuses are non-elemental and should apply even if the attack misses
-	// They are still increased by the EDP/Magnum Break bonus damage (WATK_ELEMENT)
-	// In renewal these bonuses do not apply when the attack misses
-	if (sd && battle_skill_stacks_masteries_vvs(skill_id, BCHK_STAR)) {
-		// Star Crumb bonus damage
-		ATK_ADD2(wd->damage, wd->damage2, sd->right_weapon.star, sd->left_weapon.star);
-	}
-	// Check if general mastery bonuses apply (above check is only for Star Crumb)
-	if (battle_skill_stacks_masteries_vvs(skill_id, BCHK_ALL)) {
-		// Spirit Sphere bonus damage
-		ATK_ADD(wd->damage, wd->damage2, battle_get_spiritball_damage(*wd, *src, skill_id));
-
-		// Skill-specific bonuses
-		switch(skill_id) {
-			case TF_POISON:
-				ATK_ADD(wd->damage, wd->damage2, 15 * skill_lv);
-				// Envenom applies the attribute table to the base damage and then again to the final damage
-				wd->damage = battle_attr_fix(src, target, wd->damage, right_element, tstatus->def_ele, tstatus->ele_lv, 1);
-				break;
-			case NJ_SYURIKEN:
-				ATK_ADD(wd->damage, wd->damage2, 4 * skill_lv);
-				if (sd) {
-					ATK_ADD(wd->damage, wd->damage2, 3 * pc_checkskill(sd, NJ_TOBIDOUGU));
-					ATK_ADD(wd->damage, wd->damage2, sd->bonus.arrow_atk);
-				}
-				// Applies attribute table on neutral element to the final damage
-				wd->damage = battle_attr_fix(src, target, wd->damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv, 1);
-				break;
-			case NJ_KUNAI:
-				if (sd) {
-					ATK_ADD(wd->damage, wd->damage2, 3 * sd->bonus.arrow_atk);
-				}
-				// Applies attribute table on neutral element to the final damage
-				wd->damage = battle_attr_fix(src, target, wd->damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv, 1);
-				break;
-		}
-	}
-
-	// These bonuses do not apply to skills that ignore +% damage cards
-	// If damage was reduced below 0 and was not increased again to a positive value through mastery bonuses, these bonuses are ignored
-	// Any of these are only applied to your right hand weapon in pre-renewal
-	if (!nk[NK_IGNOREELEMENT] && !nk[NK_IGNOREATKCARD] && (wd->damage > 0 || wd->damage2 > 0) && sc) {
-
-		// EDP bonus damage
-		// This has to be applied after mastery bonuses but still before the elemental extra damage
-		if (sc->getSCE(SC_EDP))
-			wd->damage += (wd->damage * sc->getSCE(SC_EDP)->val3) / 100;
-
-		// This adds a percentual damage bonus based on the damage you would deal with a normal attack
-		// Applies only to player damage; monsters and mercenaries don't get this damage boost
-		if (sd && sc->getSCE(SC_WATK_ELEMENT)) {
-			// Pretend the normal attack was of the element stored in the status change
-			wd->basedamage = battle_attr_fix(src, target, wd->basedamage, sc->getSCE(SC_WATK_ELEMENT)->val1, tstatus->def_ele, tstatus->ele_lv, 1);
-			// Star Crumb bonus damage
-			wd->basedamage += sd->right_weapon.star;
-			// Spirit Sphere bonus damage
-			wd->basedamage += battle_get_spiritball_damage(*wd, *src, skill_id);
-			// Add percent of the base damage to the damage
-			wd->damage += (wd->basedamage * sc->getSCE(SC_WATK_ELEMENT)->val2) / 100;
-		}
-	}
-#endif
 	// Cap damage to 0
 	if (battle_config.attr_recover == 0)
 		battle_min_damage(*wd, *src, skill_id, 0);
@@ -3839,11 +3537,6 @@ static void battle_calc_attack_masteries(struct Damage* wd, struct block_list *s
 	status_data* sstatus = status_get_status_data(*src);
 	int32 t_class = status_get_class(target);
 
-#ifndef RENEWAL
-	if (sd) {
-		wd->basedamage = battle_addmastery(sd, target, wd->basedamage, 0);
-	}
-#endif
 
 	// Check if mastery damage applies to current skill
 	if (sd && battle_skill_stacks_masteries_vvs(skill_id, BCHK_ALL))
@@ -3851,17 +3544,12 @@ static void battle_calc_attack_masteries(struct Damage* wd, struct block_list *s
 		uint16 skill;
 
 		wd->damage = battle_addmastery(sd,target,wd->damage,0);
-#ifdef RENEWAL
 		wd->masteryAtk = battle_addmastery(sd,target,wd->weaponAtk,0);
-#endif
 		if (is_attack_left_handed(src, skill_id)) {
 			wd->damage2 = battle_addmastery(sd,target,wd->damage2,1);
-#ifdef RENEWAL
 			wd->masteryAtk2 = battle_addmastery(sd,target,wd->weaponAtk2,1);
-#endif
 		}
 
-#ifdef RENEWAL
 		//General skill masteries
 		if(skill_id == TF_POISON) //Additional ATK from Envenom is treated as mastery type damage [helvetica]
 			ATK_ADD(wd->masteryAtk, wd->masteryAtk2, 15 * skill_lv);
@@ -3876,7 +3564,6 @@ static void battle_calc_attack_masteries(struct Damage* wd, struct block_list *s
 			ATK_ADD(wd->damage, wd->damage2, 3 * skill);
 			ATK_ADD(wd->masteryAtk, wd->masteryAtk2, 3 * skill);
 		}
-#endif
 
 		switch(skill_id) {
 			case RA_WUGDASH:
@@ -3886,12 +3573,9 @@ static void battle_calc_attack_masteries(struct Damage* wd, struct block_list *s
 					skill = pc_checkskill(sd, RA_TOOTHOFWUG);
 
 					ATK_ADD(wd->damage, wd->damage2, 30 * skill);
-#ifdef RENEWAL
 					ATK_ADD(wd->masteryAtk, wd->masteryAtk2, 30 * skill);
-#endif
 				}
 				break;
-#ifdef RENEWAL
 			case GN_CARTCANNON:
 			case NC_ARMSCANNON:
 				// Arrow attack of these skills is not influenced by P.ATK so we add it as mastery attack
@@ -3900,38 +3584,28 @@ static void battle_calc_attack_masteries(struct Damage* wd, struct block_list *s
 					ATK_ADD(wd->masteryAtk, wd->masteryAtk2, battle_attr_fix(src, target, sd->bonus.arrow_atk, sd->bonus.arrow_ele, tstatus->def_ele, tstatus->ele_lv));
 				}
 				break;
-#endif
 		}
 
 		if (sc) { // Status change considered as masteries
-#ifdef RENEWAL
 			if (sc->getSCE(SC_NIBELUNGEN)) // With renewal, the level 4 weapon limitation has been removed
 				ATK_ADD(wd->masteryAtk, wd->masteryAtk2, sc->getSCE(SC_NIBELUNGEN)->val2);
-#endif
 
 			if(sc->getSCE(SC_CAMOUFLAGE)) {
 				ATK_ADD(wd->damage, wd->damage2, 30 * min(10, sc->getSCE(SC_CAMOUFLAGE)->val3));
-#ifdef RENEWAL
 				ATK_ADD(wd->masteryAtk, wd->masteryAtk2, 30 * min(10, sc->getSCE(SC_CAMOUFLAGE)->val3));
-#endif
 			}
 			if(sc->getSCE(SC_GN_CARTBOOST)) {
 				ATK_ADD(wd->damage, wd->damage2, 10 * sc->getSCE(SC_GN_CARTBOOST)->val1);
-#ifdef RENEWAL
 				ATK_ADD(wd->masteryAtk, wd->masteryAtk2, 10 * sc->getSCE(SC_GN_CARTBOOST)->val1);
-#endif
 			}
 			if (sc->getSCE(SC_P_ALTER)) {
 				ATK_ADD(wd->damage, wd->damage2, sc->getSCE(SC_P_ALTER)->val2);
-#ifdef RENEWAL
 				ATK_ADD(wd->masteryAtk, wd->masteryAtk2, sc->getSCE(SC_P_ALTER)->val2);
-#endif
 			}
 		}
 	}
 }
 
-#ifdef RENEWAL
 /*=========================================
  * Calculate the various Renewal ATK parts
  *-----------------------------------------
@@ -4004,7 +3678,6 @@ static void battle_calc_damage_parts(struct Damage* wd, struct block_list *src,s
 	wd->damage = 0;
 	wd->damage2 = 0;
 }
-#endif
 
 /*==========================================================
  * Calculate basic ATK that goes into the skill ATK formula
@@ -4023,21 +3696,15 @@ static void battle_calc_skill_base_damage(struct Damage* wd, struct block_list *
 	map_session_data *tsd = BL_CAST(BL_PC, target);
 
 	uint16 bflag = BDMG_NONE;
-#ifndef RENEWAL
-	uint16 i;
-#endif
 	std::bitset<NK_MAX> nk = battle_skill_get_damage_properties(skill_id, wd->miscflag);
 
 	switch (skill_id) {	//Calc base damage according to skill
 		case PA_SACRIFICE:
 			wd->damage = sstatus->max_hp* 9/100;
 			wd->damage2 = 0;
-#ifdef RENEWAL
 			wd->weaponAtk = wd->damage;
 			wd->weaponAtk2 = wd->damage2;
-#endif
 			break;
-#ifdef RENEWAL
 		case LK_SPIRALPIERCE:
 		case ML_SPIRALPIERCE:
 			if (sd) {
@@ -4073,39 +3740,6 @@ static void battle_calc_skill_base_damage(struct Damage* wd, struct block_list *
 			} else {
 				wd->damage = battle_calc_base_damage(src, sstatus, &sstatus->rhw, sc, tstatus->size, 0); //Monsters have no weight and use ATK instead
 			}
-#else
-		case NJ_ISSEN:
-			wd->damage = 40 * sstatus->str + sstatus->hp * 8 * skill_lv / 100;
-			wd->damage2 = 0;
-			break;
-		case LK_SPIRALPIERCE:
-		case ML_SPIRALPIERCE:
-			if (sd) {
-				short index = sd->equip_index[EQI_HAND_R];
-
-				if (index >= 0 &&
-					sd->inventory_data[index] &&
-					sd->inventory_data[index]->type == IT_WEAPON)
-					wd->damage = sd->inventory_data[index]->weight*8/100; //80% of weight
-
-				ATK_ADDRATE(wd->damage, wd->damage2, 50*skill_lv); //Skill modifier applies to weight only.
-			} else {
-				wd->damage = battle_calc_base_damage(src, sstatus, &sstatus->rhw, sc, tstatus->size, 0); //Monsters have no weight and use ATK instead
-			}
-
-			i = sstatus->str/10;
-			i*=i;
-			ATK_ADD(wd->damage, wd->damage2, i); //Add str bonus.
-			switch (tstatus->size) { //Size-fix. Is this modified by weapon perfection?
-				case SZ_SMALL: //Small: 125%
-					ATK_RATE(wd->damage, wd->damage2, 125);
-					break;
-				//case SZ_MEDIUM: //Medium: 100%
-				case SZ_BIG: //Large: 75%
-					ATK_RATE(wd->damage, wd->damage2, 75);
-					break;
-			}
-#endif
 			break;
 		case CR_SHIELDBOOMERANG:
 		case PA_SHIELDCHAIN:
@@ -4117,15 +3751,9 @@ static void battle_calc_skill_base_damage(struct Damage* wd, struct block_list *
 				if (index >= 0 && sd->inventory_data[index] && sd->inventory_data[index]->type == IT_ARMOR) {
 					ATK_ADD(wd->damage, wd->damage2, 4 * sd->inventory.u.items_inventory[index].refine);
 					ATK_ADD(wd->damage, wd->damage2, sd->inventory_data[index]->weight / 10);
-#ifdef RENEWAL
 					ATK_ADD(wd->weaponAtk, wd->weaponAtk2, 4 * sd->inventory.u.items_inventory[index].refine);
 					ATK_ADD(wd->weaponAtk, wd->weaponAtk2, sd->inventory_data[index]->weight / 10);
-#endif
 				}
-#ifndef RENEWAL
-				// Shield Boomerang and Rapid Smiting calculate DEF before the skill ratio
-				battle_calc_defense_reduction(wd, src, target, skill_id, skill_lv);
-#endif
 			} else
 				ATK_ADD(wd->damage, wd->damage2, sstatus->rhw.atk2); //Else use Atk2
 			break;
@@ -4145,9 +3773,7 @@ static void battle_calc_skill_base_damage(struct Damage* wd, struct block_list *
 				if (sc && sc->getSCE(SC_DRAGONIC_AURA))
 					damagevalue += damagevalue * sc->getSCE(SC_DRAGONIC_AURA)->val1 * 10 / 100;
 				ATK_ADD(wd->damage, wd->damage2, damagevalue);
-#ifdef RENEWAL
 				ATK_ADD(wd->weaponAtk, wd->weaponAtk2, damagevalue);
-#endif
 				wd->flag |= BF_LONG;
 			}
 			break;
@@ -4158,26 +3784,20 @@ static void battle_calc_skill_base_damage(struct Damage* wd, struct block_list *
 					damagevalue = damagevalue * status_get_lv(src) / 100;
 				damagevalue = damagevalue + sstatus->hp;
 				ATK_ADD(wd->damage, wd->damage2, damagevalue);
-#ifdef RENEWAL
 				ATK_ADD(wd->weaponAtk, wd->weaponAtk2, damagevalue);
-#endif
 			}
 			break;
 		case KO_HAPPOKUNAI:
 			if(sd) {
 				short index = sd->equip_index[EQI_AMMO];
 				int32 damagevalue = 3 * (
-#ifdef RENEWAL
 					2 *
-#endif
 					sstatus->batk + sstatus->rhw.atk + (index >= 0 && sd->inventory_data[index] ?
 						sd->inventory_data[index]->atk : 0)) * (skill_lv + 5) / 5;
 				if (sc && sc->getSCE(SC_KAGEMUSYA))
 					damagevalue += damagevalue * sc->getSCE(SC_KAGEMUSYA)->val2 / 100;
 				ATK_ADD(wd->damage, wd->damage2, damagevalue);
-#ifdef RENEWAL
 				ATK_ADD(wd->weaponAtk, wd->weaponAtk2, damagevalue);
-#endif
 			} else
 				ATK_ADD(wd->damage, wd->damage2, 5000);
 			break;
@@ -4191,7 +3811,6 @@ static void battle_calc_skill_base_damage(struct Damage* wd, struct block_list *
 			bflag = BDMG_NONE;
 			if (is_attack_critical(wd, src, target, skill_id, skill_lv, false)) bflag |= BDMG_CRIT;
 			if (!skill_id && sc && sc->getSCE(SC_CHANGE)) bflag |= BDMG_MAGIC;
-#ifdef RENEWAL
 			if (sd)
 				battle_calc_damage_parts(wd, src, target, skill_id, skill_lv);
 			else {
@@ -4199,46 +3818,13 @@ static void battle_calc_skill_base_damage(struct Damage* wd, struct block_list *
 				if (is_attack_left_handed(src, skill_id))
 					wd->damage2 = battle_calc_base_damage(src, sstatus, &sstatus->lhw, sc, tstatus->size, bflag);
 			}
-#else
-			// Pre-renewal exclusive flags
-			if (skill_id == HW_MAGICCRASHER) bflag |= BDMG_MAGIC;
-			if (sc && sc->getSCE(SC_WEAPONPERFECTION)) bflag |= BDMG_NOSIZE;
-			if (is_skill_using_arrow(src, skill_id) && sd) {
-				switch(sd->status.weapon) {
-					case W_BOW:
-						bflag |= BDMG_ARROW;
-						break;
-					case W_REVOLVER:
-					case W_RIFLE:
-					case W_GATLING:
-					case W_SHOTGUN:
-					case W_GRENADE:
-						// Criticals with any guns are calculated like melee criticals
-						if (!(bflag & BDMG_CRIT)) {
-							bflag |= BDMG_ARROW;
-						}
-						break;
-					default:
-						// Attacks that use ammo are calculated like melee attacks as long as no ranged weapon is equipped
-						// Some skills manually add arrow_atk as mastery bonus later (e.g. Throw Shuriken, Throw Kunai)
-						break;
-				}
-			}
-			if (skill_id == SN_SHARPSHOOTING || skill_id == MA_SHARPSHOOTING)
-				bflag &= ~(BDMG_CRIT); // Sharpshooting just ignores DEF/FLEE but damage is like a normal attack
-			wd->damage = battle_calc_base_damage(src, sstatus, &sstatus->rhw, sc, tstatus->size, bflag);
-			if (is_attack_left_handed(src, skill_id))
-				wd->damage2 = battle_calc_base_damage(src, sstatus, &sstatus->lhw, sc, tstatus->size, bflag);
-#endif
 			if (nk[NK_SPLASHSPLIT]){ // Divide ATK among targets
 				if(wd->miscflag > 0) {
 					wd->damage /= wd->miscflag;
-#ifdef RENEWAL
 					wd->statusAtk /= wd->miscflag;
 					wd->weaponAtk /= wd->miscflag;
 					wd->equipAtk /= wd->miscflag;
 					wd->masteryAtk /= wd->miscflag;
-#endif
 				} else
 					ShowError("0 enemies targeted by %d:%s, divide per 0 avoided!\n", skill_id, skill_get_name(skill_id));
 			}
@@ -4247,32 +3833,11 @@ static void battle_calc_skill_base_damage(struct Damage* wd, struct block_list *
 			if(sd) {
 				int32 skill;
 
-#ifndef RENEWAL
-				if (sd->bonus.crit_atk_rate && (bflag & BDMG_CRIT)) { // add +crit damage bonuses here in pre-renewal mode [helvetica]
-					ATK_ADDRATE(wd->damage, wd->damage2, sd->bonus.crit_atk_rate);
-				}
-				if(sd->status.party_id && (skill=pc_checkskill(sd,TK_POWER)) > 0) {
-					if( (i = party_foreachsamemap(party_sub_count, sd, 0)) > 1 ) { // exclude the player himself [Inkfish]
-						// Reduce count by one (self) [Tydus1]
-						i -= 1; 
-						ATK_ADDRATE(wd->damage, wd->damage2, 2*skill*i);
-					}
-				}
-#else
 				if ((skill = pc_checkskill(sd, TK_POWER)) > 0) {
 					ATK_ADDRATE(wd->damage, wd->damage2, 10 + 15 * skill);
 					RE_ALLATK_ADDRATE(wd, 10 + 15 * skill);
 				}
-#endif
 			}
-#ifndef RENEWAL
-			if (tsd != nullptr && tsd->bonus.crit_def_rate != 0 && !skill_id && (bflag & BDMG_CRIT)) {
-				ATK_ADDRATE(wd->damage, wd->damage2, -tsd->bonus.crit_def_rate);
-			}
-			//Acid Terror ignores DEF but will substract VIT from base attack value instead
-			if (skill_id == AM_ACIDTERROR)
-				ATK_ADD(wd->damage, wd->damage2, -tstatus->def2);
-#endif
 			break;
 	} //End switch(skill_id)
 }
@@ -4361,11 +3926,7 @@ static void battle_calc_multi_attack(struct Damage* wd, struct block_list *src,s
 			if (sc && sc->getSCE(SC_KAGEMUSYA))
 				max_rate = sc->getSCE(SC_KAGEMUSYA)->val1 * 10; // Same rate as even levels of TF_DOUBLE
 			else
-#ifdef RENEWAL
 				max_rate = max(7 * skill_lv, sd->bonus.double_rate);
-#else
-				max_rate = max(5 * skill_lv, sd->bonus.double_rate);
-#endif
 
 			if( rnd()%100 < max_rate ) {
 				wd->div_ = skill_get_num(TF_DOUBLE,skill_lv?skill_lv:1);
@@ -4415,7 +3976,6 @@ static void battle_calc_multi_attack(struct Damage* wd, struct block_list *src,s
 				wd->div_ = 3;
 			}
 			break;
-#ifdef RENEWAL
 		case AS_POISONREACT:
 			skill_lv = pc_checkskill(sd, TF_DOUBLE);
 			if (skill_lv > 0) {
@@ -4424,7 +3984,6 @@ static void battle_calc_multi_attack(struct Damage* wd, struct block_list *src,s
 				}
 			}
 		break;
-#endif
 		case NW_SPIRAL_SHOOTING:
 			if (sd && sd->weapontype1 == W_GRENADE)
 				wd->div_ += 1;
@@ -4516,20 +4075,14 @@ static int32 battle_calc_attack_skill_ratio(struct Damage* wd, struct block_list
 
 	//Skill damage modifiers that stack linearly
 	if(sc && skill_id != PA_SACRIFICE) {
-#ifdef RENEWAL
 		//ATK percent modifier (in renewal, it's applied before the skillratio)
 		skillratio = battle_get_atkpercent(*src, skill_id, *sc);
-#endif
 		if(sc->getSCE(SC_OVERTHRUST))
 			skillratio += sc->getSCE(SC_OVERTHRUST)->val3;
 		if(sc->getSCE(SC_MAXOVERTHRUST))
 			skillratio += sc->getSCE(SC_MAXOVERTHRUST)->val2;
 		if(sc->getSCE(SC_BERSERK))
-#ifndef RENEWAL
-			skillratio += 100;
-#else
 			skillratio += 200;
-#endif
 		if (!skill_id || skill_id == KN_AUTOCOUNTER) {
 			if (sc->getSCE(SC_CRUSHSTRIKE)) {
 				if (sd) { //ATK [{Weapon Level * (Weapon Upgrade Level + 6) * 100} + (Weapon ATK) + (Weapon Weight)]%
@@ -4576,11 +4129,7 @@ static int32 battle_calc_attack_skill_ratio(struct Damage* wd, struct block_list
 			break;
 		case AC_SHOWER:
 		case MA_SHOWER:
-#ifdef RENEWAL
 			skillratio += 50 + 10 * skill_lv;
-#else
-			skillratio += -25 + 5 * skill_lv;
-#endif
 			break;
 		case AC_CHARGEARROW:
 		case MA_CHARGEARROW:
@@ -4603,13 +4152,9 @@ static int32 battle_calc_attack_skill_ratio(struct Damage* wd, struct block_list
 		case KN_SPEARBOOMERANG:
 			skillratio += 50 * skill_lv;
 			break;
-#ifdef RENEWAL
 		case KN_BRANDISHSPEAR:
 			skillratio += -100 + 400 + 100 * skill_lv + sstatus->str * 3;
 			break;
-#else
-		case KN_BRANDISHSPEAR:
-#endif
 		case ML_BRANDISH:
 			{
 				int32 ratio = 100 + 20 * skill_lv;
@@ -4640,15 +4185,9 @@ static int32 battle_calc_attack_skill_ratio(struct Damage* wd, struct block_list
 			skillratio += 30 * skill_lv;
 			break;
 		case AS_SONICBLOW:
-#ifdef RENEWAL
 			skillratio += 100 + 100 * skill_lv;
 			if (tstatus->hp < (tstatus->max_hp / 2))
 				skillratio += skillratio / 2;
-#else
-			skillratio += 200 + 50 * skill_lv;
-			if (sd && pc_checkskill(sd, AS_SONICACCEL) > 0)
-				skillratio += skillratio / 10;
-#endif
 			break;
 		case TF_SPRINKLESAND:
 			skillratio += 30;
@@ -4698,11 +4237,7 @@ static int32 battle_calc_attack_skill_ratio(struct Damage* wd, struct block_list
 				skillratio += 200 + 40 * skill_lv;
 			break;
 		case RG_RAID:
-#ifdef RENEWAL
 			skillratio += -100 + 50 + skill_lv * 150;
-#else
-			skillratio += 40 * skill_lv;
-#endif
 			break;
 		case RG_INTIMIDATE:
 			skillratio += 30 * skill_lv;
@@ -4711,115 +4246,71 @@ static int32 battle_calc_attack_skill_ratio(struct Damage* wd, struct block_list
 			skillratio += 20 * skill_lv;
 			break;
 		case CR_SHIELDBOOMERANG:
-#ifdef RENEWAL
 			skillratio += -100 + skill_lv * 80;
-#else
-			skillratio += 30 * skill_lv;
-#endif
 			break;
 		case NPC_DARKCROSS:
 		case CR_HOLYCROSS:
-#ifdef RENEWAL
 			if(sd && sd->status.weapon == W_2HSPEAR)
 				skillratio += 70 * skill_lv;
 			else
-#endif
 				skillratio += 35 * skill_lv;
 			break;
 		case AM_DEMONSTRATION:
 			skillratio += 20 * skill_lv;
 			break;
 		case AM_ACIDTERROR:
-#ifdef RENEWAL
 			skillratio += -100 + 200 * skill_lv;
 			if (sd && pc_checkskill(sd, AM_LEARNINGPOTION))
 				skillratio += 100; // !TODO: What's this bonus increase?
-#else
-			skillratio += -50 + 50 * skill_lv;
-#endif
 			break;
 		case MO_FINGEROFFENSIVE:
-#ifdef RENEWAL
 			skillratio += 500 + skill_lv * 200;
 			if (tsc && tsc->getSCE(SC_BLADESTOP))
 				skillratio += skillratio / 2;
-#else
-			skillratio += 50 * skill_lv;
-#endif
 			break;
 		case MO_INVESTIGATE:
-#ifdef RENEWAL
 			skillratio += -100 + 100 * skill_lv;
 			if (tsc && tsc->getSCE(SC_BLADESTOP))
 				skillratio += skillratio / 2;
-#else
-			skillratio += 75 * skill_lv;
-#endif
 			break;
 		case MO_EXTREMITYFIST:
 			skillratio += 700 + sstatus->sp * 10;
-#ifdef RENEWAL
 			if (wd->miscflag&1)
 				skillratio *= 2; // More than 5 spirit balls active
-#endif
 			skillratio = min(500000,skillratio); //We stop at roughly 50k SP for overflow protection
 			break;
 		case MO_TRIPLEATTACK:
 			skillratio += 20 * skill_lv;
 			break;
 		case MO_CHAINCOMBO:
-#ifdef RENEWAL
 			skillratio += 150 + 50 * skill_lv;
 			if (sd && sd->status.weapon == W_KNUCKLE)
 				skillratio *= 2;
-#else
-			skillratio += 50 + 50 * skill_lv;
-#endif
 			break;
 		case MO_COMBOFINISH:
-#ifdef RENEWAL
 			skillratio += 450 + 50 * skill_lv + sstatus->str; // !TODO: How does STR play a role?
-#else
-			skillratio += 140 + 60 * skill_lv;
-#endif
 			if (sc->getSCE(SC_GT_ENERGYGAIN))
 				skillratio += skillratio * 50 / 100;
 			break;
 		case BA_MUSICALSTRIKE:
 		case DC_THROWARROW:
-#ifdef RENEWAL
 			skillratio += 10 + 40 * skill_lv;
-#else
-			skillratio += 25 + 25 * skill_lv;
-#endif
 			break;
 		case CH_TIGERFIST:
-#ifdef RENEWAL
 			skillratio += 400 + 150 * skill_lv;
 			RE_LVL_DMOD(100);
-#else
-			skillratio += -60 + 100 * skill_lv;
-#endif
 			if (sc->getSCE(SC_GT_ENERGYGAIN))
 				skillratio += skillratio * 50 / 100;
 			break;
 		case CH_CHAINCRUSH:
-#ifdef RENEWAL
 			skillratio += -100 + 200 * skill_lv;
 			RE_LVL_DMOD(100);
-#else
-			skillratio += 300 + 100 * skill_lv;
-#endif
 			if (sc->getSCE(SC_GT_ENERGYGAIN))
 				skillratio += skillratio * 50 / 100;
 			break;
 		case CH_PALMSTRIKE:
-#ifdef RENEWAL
 			skillratio += 100 + 100 * skill_lv + sstatus->str; // !TODO: How does STR play a role?
 			RE_LVL_DMOD(100);
-#else
-			skillratio += 100 + 100 * skill_lv;
-#endif
 			break;
 		case LK_HEADCRUSH:
 			skillratio += 40 * skill_lv;
@@ -4829,7 +4320,6 @@ static int32 battle_calc_attack_skill_ratio(struct Damage* wd, struct block_list
 			if (wd->miscflag & BREAK_NECK || (tsc && tsc->getSCE(SC_JOINTBEAT) && tsc->getSCE(SC_JOINTBEAT)->val2 & BREAK_NECK)) // The 2x damage is only for the BREAK_NECK ailment.
 				skillratio *= 2;
 			break;
-#ifdef RENEWAL
 		// Renewal: skill ratio applies to entire damage [helvetica]
 		case LK_SPIRALPIERCE:
 			skillratio += 50 + 50 * skill_lv;
@@ -4841,14 +4331,9 @@ static int32 battle_calc_attack_skill_ratio(struct Damage* wd, struct block_list
 			skillratio += 50 + 50 * skill_lv;
 			RE_LVL_DMOD(100);
 		break;
-#endif
 		case ASC_METEORASSAULT:
-#ifdef RENEWAL
 			skillratio += 100 + 120 * skill_lv;
 			RE_LVL_DMOD(100);
-#else
-			skillratio += -60 + 40 * skill_lv;
-#endif
 			break;
 		case SN_SHARPSHOOTING:
 			if (src->type == BL_MOB) { // TODO: Did these formulas change in the renewal balancing?
@@ -4860,51 +4345,31 @@ static int32 battle_calc_attack_skill_ratio(struct Damage* wd, struct block_list
 			}
 			[[fallthrough]];
 		case MA_SHARPSHOOTING:
-#ifdef RENEWAL
 			skillratio += -100 + 300 + 300 * skill_lv;
 			RE_LVL_DMOD(100);
-#else
-			skillratio += 100 + 50 * skill_lv;
-#endif
 			break;
-#ifdef RENEWAL
 		case CR_ACIDDEMONSTRATION:
 			skillratio += -100 + 200 * skill_lv + sstatus->int_ + tstatus->vit; // !TODO: Confirm status bonus
 			if (target->type == BL_PC)
 				skillratio /= 2;
 			break;
-#endif
 		case CG_ARROWVULCAN:
-#ifdef RENEWAL
 			skillratio += 400 + 100 * skill_lv;
 			RE_LVL_DMOD(100);
-#else
-			skillratio += 100 + 100 * skill_lv;
-#endif
 			break;
 		case AS_SPLASHER:
-#ifdef RENEWAL
 			skillratio += -100 + 400 + 100 * skill_lv;
-#else
-			skillratio += 400 + 50 * skill_lv;
-#endif
 			if(sd)
 				skillratio += 20 * pc_checkskill(sd,AS_POISONREACT);
 			break;
 		case ASC_BREAKER:
-#ifdef RENEWAL
 			skillratio += -100 + 150 * skill_lv + sstatus->str + sstatus->int_; // !TODO: Confirm stat modifier
 			RE_LVL_DMOD(100);
-#else
-			// Pre-Renewal: skill ratio for weapon part of damage [helvetica]
-			skillratio += -100 + 100 * skill_lv;
-#endif
 			break;
 		case PA_SACRIFICE:
 			skillratio += -10 + 10 * skill_lv;
 			break;
 		case PA_SHIELDCHAIN:
-#ifdef RENEWAL
 			skillratio = -100 + 300 + 200 * skill_lv;
 
 			if( sd != nullptr ){
@@ -4922,9 +4387,6 @@ static int32 battle_calc_attack_skill_ratio(struct Damage* wd, struct block_list
 			}
 
 			RE_LVL_DMOD(100);
-#else
-			skillratio += 30 * skill_lv;
-#endif
 			if (sc && sc->getSCE(SC_SHIELD_POWER))// Whats the official increase? [Rytech]
 				skillratio += skillratio * 50 / 100;
 			break;
@@ -4969,14 +4431,10 @@ static int32 battle_calc_attack_skill_ratio(struct Damage* wd, struct block_list
 			skillratio += 100 * (skill_lv + 1);
 			break;
 		case GS_PIERCINGSHOT:
-#ifdef RENEWAL
 			if (sd && sd->weapontype1 == W_RIFLE)
 				skillratio += 150 + 30 * skill_lv;
 			else
 				skillratio += 100 + 20 * skill_lv;
-#else
-			skillratio += 20 * skill_lv;
-#endif
 			break;
 		case GS_RAPIDSHOWER:
 			skillratio += 400 + 50 * skill_lv;
@@ -4993,45 +4451,24 @@ static int32 battle_calc_attack_skill_ratio(struct Damage* wd, struct block_list
 			skillratio += 100 * (skill_lv + 2);
 			break;
 		case GS_SPREADATTACK:
-#ifdef RENEWAL
 			skillratio += 30 * skill_lv;
-#else
-			skillratio += 20 * (skill_lv - 1);
-#endif
 			break;
-#ifdef RENEWAL
 		case GS_GROUNDDRIFT:
 			skillratio += 100 + 20 * skill_lv;
 			break;
-#endif
 		case NJ_HUUMA:
-#ifdef RENEWAL
 			skillratio += -150 + 250 * skill_lv;
-#else
-			skillratio += 50 + 150 * skill_lv;
-#endif
 			break;
 		case NJ_TATAMIGAESHI:
 			skillratio += 10 * skill_lv;
-#ifdef RENEWAL
 			skillratio *= 2;
-#endif
 			break;
 		case NJ_KASUMIKIRI:
-#ifdef RENEWAL
 			skillratio += 20 * skill_lv;
-#else
-			skillratio += 10 * skill_lv;
-#endif
 			break;
 		case NJ_KIRIKAGE:
-#ifdef RENEWAL
 			skillratio += -50 + 150 * skill_lv;
-#else
-			skillratio += 100 * (skill_lv - 1);
-#endif
 			break;
-#ifdef RENEWAL
 		case NJ_SYURIKEN:
 			skillratio += 5 * skill_lv;
 			break;
@@ -5044,30 +4481,11 @@ static int32 battle_calc_attack_skill_ratio(struct Damage* wd, struct block_list
 		case AS_VENOMKNIFE:
 			skillratio += 400;
 			break;
-#else
-		case KN_CHARGEATK: { // +100% every 3 cells of distance but hard-limited to 500%
-				int32 k = (wd->miscflag-1)/3;
-				if (k < 0)
-					k = 0;
-				else if (k > 4)
-					k = 4;
-				skillratio += 100 * k;
-			}
-			break;
-#endif
 		case HT_PHANTASMIC:
-#ifdef RENEWAL
 			skillratio += 400;
-#else
-			skillratio += 50;
-#endif
 			break;
 		case MO_BALKYOUNG:
-#ifdef RENEWAL
 			skillratio += 700;
-#else
-			skillratio += 200;
-#endif
 			break;
 		case HFLI_MOON: //[orn]
 			skillratio += 10 + 110 * skill_lv;
@@ -6353,20 +5771,10 @@ static int64 battle_calc_skill_constant_addition(struct Damage* wd, struct block
 				}
 			}
 			break;
-#ifndef RENEWAL
-		case GS_MAGICALBULLET:
-			if (sstatus->matk_max > sstatus->matk_min)
-				atk = sstatus->matk_min + rnd()%(sstatus->matk_max - sstatus->matk_min);
-			else
-				atk = sstatus->matk_min;
-			break;
-#endif
-#ifdef RENEWAL
 		case HT_FREEZINGTRAP:
 			if(sd)
 				atk = 40 * pc_checkskill(sd, RA_RESEARCHTRAP);
 			break;
-#endif
 	}
 	return atk;
 }
@@ -6390,14 +5798,11 @@ static void battle_attack_sc_bonus(struct Damage* wd, struct block_list *src, st
 	// Kagerou/Oboro Earth Charm effect +15% wATK
 	if(sd && sd->spiritcharm_type == CHARM_TYPE_LAND && sd->spiritcharm > 0) {
 		ATK_ADDRATE(wd->damage, wd->damage2, 15 * sd->spiritcharm);
-#ifdef RENEWAL
 		ATK_ADDRATE(wd->weaponAtk, wd->weaponAtk2, 15 * sd->spiritcharm);
-#endif
 	}
 
 	//The following are applied on top of current damage and are stackable.
 	if (sc) {
-#ifdef RENEWAL
 		if (sc->getSCE(SC_WATK_ELEMENT) && skill_id != ASC_METEORASSAULT)
 			ATK_ADDRATE(wd->weaponAtk, wd->weaponAtk2, sc->getSCE(SC_WATK_ELEMENT)->val2);
 		if (sc->getSCE(SC_DRUMBATTLE))
@@ -6415,11 +5820,6 @@ static void battle_attack_sc_bonus(struct Damage* wd, struct block_list *src, st
 		}
 		if (sc->getSCE(SC_GATLINGFEVER))
 			ATK_ADD(wd->equipAtk, wd->equipAtk2, sc->getSCE(SC_GATLINGFEVER)->val3);
-#else
-		//ATK percent modifier (in pre-renewal, it's applied multiplicatively after the skill ratio)
-		ATK_RATE(wd->damage, wd->damage2, battle_get_atkpercent(*src, skill_id, *sc));
-		ATK_RATER(wd->basedamage, battle_get_atkpercent(*src, 0, *sc));
-#endif
 		if (sc->getSCE(SC_SPIRIT)) {
 			if (skill_id == AS_SONICBLOW && sc->getSCE(SC_SPIRIT)->val2 == SL_ASSASIN) {
 				ATK_ADDRATE(wd->damage, wd->damage2, map_flag_gvg2(src->m) ? 25 : 100); //+25% dmg on woe/+100% dmg on nonwoe
@@ -6431,7 +5831,6 @@ static void battle_attack_sc_bonus(struct Damage* wd, struct block_list *src, st
 		}
 		if (sc->getSCE(SC_GT_CHANGE))
 			ATK_ADDRATE(wd->damage, wd->damage2, sc->getSCE(SC_GT_CHANGE)->val1);
-#ifdef RENEWAL
 		if (sc->getSCE(SC_EDP)) {
 			switch(skill_id) {
 				// Renewal: Venom Splasher, Meteor Assault, Grimtooth and Venom Knife ignore EDP
@@ -6451,28 +5850,21 @@ static void battle_attack_sc_bonus(struct Damage* wd, struct block_list *src, st
 					break;
 			}
 		}
-#endif
 		if (sc->getSCE(SC_DANCEWITHWUG)) {
 			if (skill_get_inf2(skill_id, INF2_INCREASEDANCEWITHWUGDAMAGE)) {
 				ATK_ADDRATE(wd->damage, wd->damage2, sc->getSCE(SC_DANCEWITHWUG)->val1 * 10 * battle_calc_chorusbonus(sd));
 				RE_ALLATK_ADDRATE(wd, sc->getSCE(SC_DANCEWITHWUG)->val1 * 10 * battle_calc_chorusbonus(sd));
 			}
 			ATK_ADDRATE(wd->damage, wd->damage2, sc->getSCE(SC_DANCEWITHWUG)->val1 * 2 * battle_calc_chorusbonus(sd));
-#ifdef RENEWAL
 			ATK_ADDRATE(wd->equipAtk, wd->equipAtk2, sc->getSCE(SC_DANCEWITHWUG)->val1 * 2 * battle_calc_chorusbonus(sd));
-#endif
 		}
 		if(sc->getSCE(SC_ZENKAI) && sstatus->rhw.ele == sc->getSCE(SC_ZENKAI)->val2) {
 			ATK_ADD(wd->damage, wd->damage2, 200);
-#ifdef RENEWAL
 			ATK_ADD(wd->equipAtk, wd->equipAtk2, 200);
-#endif
 		}
 		if (sc->getSCE(SC_EQC)) {
 			ATK_ADDRATE(wd->damage, wd->damage2, -sc->getSCE(SC_EQC)->val2);
-#ifdef RENEWAL
 			ATK_ADDRATE(wd->equipAtk, wd->equipAtk2, -sc->getSCE(SC_EQC)->val2);
-#endif
 		}
 		if(sc->getSCE(SC_STYLE_CHANGE)) {
 			TBL_HOM *hd = BL_CAST(BL_HOM,src);
@@ -6544,9 +5936,7 @@ static void battle_attack_sc_bonus(struct Damage* wd, struct block_list *src, st
 		if (anger_level < 4)
 			skillratio /= 12 - 3 * anger_level;
 		ATK_ADDRATE(wd->damage, wd->damage2, skillratio);
-#ifdef RENEWAL
 		RE_ALLATK_ADDRATE(wd, skillratio);
-#endif
 	}
 }
 
@@ -6638,22 +6028,13 @@ static void battle_calc_defense_reduction(struct Damage* wd, struct block_list *
 			def2 = 1;
 	}
 
-#ifdef RENEWAL
 	if (skill_id == AM_ACIDTERROR)
 		def2 = 0; // Ignore only status defense.
-#endif
 
 	//Damage reduction based on vitality
 	if (tsd) {	//Sd vit-eq
 		int32 skill;
-#ifndef RENEWAL
-		//Damage reduction: [VIT*0.3] + RND(0, [VIT^2/150] - [VIT*0.3] - 1) + [VIT*0.5]
-		vit_def = ((3 * def2) / 10);
-		vit_def += rnd_value(0, max(0, (def2 * def2) / 150 - ((3 * def2) / 10) - 1));
-		vit_def += (def2 / 2);
-#else
 		vit_def = def2;
-#endif
 		if (src->type == BL_MOB && (battle_check_undead(sstatus->race, sstatus->def_ele) || sstatus->race == RC_DEMON) && //This bonus already doesn't work vs players
 			(skill = pc_checkskill(tsd, AL_DP)) > 0)
 			vit_def += (int)(((float)tsd->status.base_level / 25.0 + 3.0) * skill + 0.5);
@@ -6664,16 +6045,8 @@ static void battle_calc_defense_reduction(struct Damage* wd, struct block_list *
 			(sstatus->def_ele == ELE_FIRE || sstatus->def_ele == ELE_EARTH) )
 			vit_def += skill * 10;
 	} else { //Mob-Pet vit-eq
-#ifndef RENEWAL
-		//VIT + rnd(0,[VIT/20]^2-1)
-		vit_def = (def2/20)*(def2/20);
-		if (tsc && tsc->getSCE(SC_SKA))
-			vit_def += 100; //Eska increases the random part of the formula by 100
-		vit_def = def2 + (vit_def>0?rnd()%vit_def:0);
-#else
 		//SoftDEF of monsters is floor((BaseLevel+Vit)/2)
 		vit_def = def2;
-#endif
 	}
 
 	if (battle_config.weapon_defense_type) {
@@ -6681,7 +6054,6 @@ static void battle_calc_defense_reduction(struct Damage* wd, struct block_list *
 		def1 = 0;
 	}
 
-#ifdef RENEWAL
 	std::bitset<NK_MAX> nk = battle_skill_get_damage_properties(skill_id, wd->miscflag);
 
 	if (nk[NK_SIMPLEDEFENSE]) {
@@ -6708,19 +6080,6 @@ static void battle_calc_defense_reduction(struct Damage* wd, struct block_list *
 		if (is_attack_left_handed(src, skill_id) && !attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_L) && !is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_L))
 			wd->damage2 = wd->damage2 * (4000 + def1) / (4000 + 10 * def1) - vit_def;
 	}
-#else
-		if (def1 > 100) def1 = 100;
-		ATK_RATE2(wd->damage, wd->damage2,
-			attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_R) ?100:(is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_R) ? (int64)is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_R)*(def1+vit_def) : (100-def1)),
-			attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_L) ?100:(is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_L) ? (int64)is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_L)*(def1+vit_def) : (100-def1))
-		);
-		ATK_RATER(wd->basedamage, 100 - def1);
-		ATK_ADD2(wd->damage, wd->damage2,
-			attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_R) || is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_R) ?0:-vit_def,
-			attack_ignores_def(wd, src, target, skill_id, skill_lv, EQI_HAND_L) || is_attack_piercing(wd, src, target, skill_id, skill_lv, EQI_HAND_L) ?0:-vit_def
-		);
-		wd->basedamage -= vit_def;
-#endif
 }
 
 /*====================================
@@ -6738,46 +6097,22 @@ static void battle_calc_attack_post_defense(struct Damage* wd, struct block_list
 	status_data* sstatus = status_get_status_data(*src);
 
 	// Post skill/vit reduction damage increases
-#ifndef RENEWAL
-	//Refine bonus
-	if (sd) {
-		if (battle_skill_stacks_masteries_vvs(skill_id, BCHK_REFINE)) {
-			ATK_ADD2(wd->damage, wd->damage2, sstatus->rhw.atk2, sstatus->lhw.atk2);
-		}
-		wd->basedamage += sstatus->rhw.atk2;
-	}
-
-	//After DEF reduction, damage can be negative, refine bonus works against that value
-	//After refinement bonus was applied, damage is capped to 1, then masteries are applied
-	battle_min_damage(*wd, *src, skill_id, 1);
-
-	battle_calc_attack_masteries(wd, src, target, skill_id, skill_lv);
-#endif
 	if (sc) { // SC skill damages
 		if (sc->getSCE(SC_AURABLADE)
-#ifndef RENEWAL
-			&& skill_id != LK_SPIRALPIERCE && skill_id != ML_SPIRALPIERCE
-#endif
 			) {
-#ifdef RENEWAL
 			ATK_ADD(wd->damage, wd->damage2, (3 + sc->getSCE(SC_AURABLADE)->val1) * status_get_lv(src)); // !TODO: Confirm formula
-#else
-			ATK_ADD(wd->damage, wd->damage2, 20 * sc->getSCE(SC_AURABLADE)->val1);
-#endif
 		}
 	}
 
 	//Set to min of 1
 	battle_min_damage(*wd, *src, skill_id, 1);
 
-#ifdef RENEWAL
 	switch (skill_id) {
 		case AS_SONICBLOW:
 			if(sd && pc_checkskill(sd,AS_SONICACCEL)>0)
 				ATK_ADDRATE(wd->damage, wd->damage2, 90);
 			break;
 	}
-#endif
 }
 
 /*=================================================================================
@@ -6840,9 +6175,6 @@ static void battle_calc_attack_plant(struct Damage* wd, struct block_list *src,s
 	// Triple Attack and Finger Offensive have a special property, they do not split damage on plant mode
 	// In pre-renewal, it requires the monster to have exactly 100 def
 	if ((skill_id == MO_TRIPLEATTACK || skill_id == MO_FINGEROFFENSIVE) && wd->div_ < 0
-#ifndef RENEWAL
-		&& tstatus->def == 100
-#endif
 		)
 		wd->div_ *= -1;
 
@@ -6874,11 +6206,7 @@ static void battle_calc_attack_left_right_hands(struct Damage* wd, struct block_
 		if(sd->status.weapon == W_KATAR && !skill_id) { //Katars (offhand damage only applies to normal attacks, tested on Aegis 10.2)
 			skill = pc_checkskill(sd,TF_DOUBLE);
 			wd->damage2 = (int64)wd->damage * (1 + (skill * 2))/100;
-#ifdef RENEWAL
 		} else if(is_attack_left_handed(src, skill_id) && sd->status.weapon != W_KATAR) {	//Dual-wield
-#else
-		} else if(is_attack_left_handed(src, skill_id)) {	//Dual-wield
-#endif
 			// If you only have a weapon in the left hand, then your main hand damage will be identical to an unarmed attack
 			if (is_attack_right_handed(src, skill_id) && wd->damage) {
 				if( (sd->class_&MAPID_BASEMASK) == MAPID_THIEF ) {
@@ -7081,13 +6409,6 @@ static void battle_calc_weapon_final_atk_modifiers(struct Damage* wd, struct blo
 			status_change_end(src, SC_CAMOUFLAGE);
 	}
 
-#ifndef RENEWAL
-	if (skill_id == ASC_BREAKER) { //Breaker's int-based damage (a misc attack?)
-		struct Damage md = battle_calc_misc_attack(src, target, skill_id, skill_lv, wd->miscflag);
-
-		wd->damage += md.damage;
-	}
-#endif
 
 	// Skill damage adjustment
 	if ((skill_damage = battle_skill_damage(src, target, skill_id)) != 0)
@@ -7123,12 +6444,8 @@ static struct Damage initialize_weapon_data(struct block_list *src, struct block
 	wd.flag |= (skill_id||wd.miscflag)?BF_SKILL:BF_NORMAL; // Baphomet card's splash damage is counted as a skill. [Inkfish]
 	wd.isspdamage = false;
 	wd.damage = wd.damage2 =
-#ifdef RENEWAL
 	wd.statusAtk = wd.statusAtk2 = wd.equipAtk = wd.equipAtk2 = wd.weaponAtk = wd.weaponAtk2 = wd.masteryAtk = wd.masteryAtk2 =
 	wd.percentAtk = wd.percentAtk2 =
-#else
-	wd.basedamage =
-#endif
 	0;
 
 	wd.dmg_lv=ATK_DEF;	//This assumption simplifies the assignation later
@@ -7140,7 +6457,6 @@ static struct Damage initialize_weapon_data(struct block_list *src, struct block
 		wd.flag |= battle_range_type(src, target, skill_id, skill_lv);
 		switch(skill_id)
 		{
-#ifdef RENEWAL
 			case RG_BACKSTAP:
 				if (sd && sd->status.weapon == W_DAGGER)
 					wd.div_ = 2;
@@ -7149,7 +6465,6 @@ static struct Damage initialize_weapon_data(struct block_list *src, struct block
 				if (sd && sd->status.weapon == W_KNUCKLE)
 					wd.div_ = -6;
 				break;
-#endif
 			case MH_SONIC_CRAW:{
 				TBL_HOM *hd = BL_CAST(BL_HOM,src);
 				wd.div_ = hd->homunculus.spiritball;
@@ -7159,10 +6474,6 @@ static struct Damage initialize_weapon_data(struct block_list *src, struct block
 				if (sd) {
 					if (battle_config.finger_offensive_type)
 						wd.div_ = 1;
-#ifndef RENEWAL
-					else if ((sd->spiritball + sd->spiritball_old) < wd.div_)
-						wd.div_ = sd->spiritball + sd->spiritball_old;
-#endif
 				}
 				break;
 
@@ -7180,9 +6491,6 @@ static struct Damage initialize_weapon_data(struct block_list *src, struct block
 				wd.amotion = sstatus->amotion;
 				[[fallthrough]];
 			case KN_SPEARSTAB:
-#ifndef RENEWAL
-			case KN_BOWLINGBASH:
-#endif
 			case MS_BOWLINGBASH:
 			case MO_BALKYOUNG:
 			case TK_TURNKICK:
@@ -7194,7 +6502,6 @@ static struct Damage initialize_weapon_data(struct block_list *src, struct block
 				// A random 0~3 knockback bonus is added to the base knockback
 				wd.blewcount += rnd_value(0, 3);
 				break;
-#ifdef RENEWAL
 			case KN_BOWLINGBASH:
 				if (sd && sd->status.weapon == W_2HSWORD) {
 					if (wd.miscflag >= 2 && wd.miscflag <= 3)
@@ -7203,7 +6510,6 @@ static struct Damage initialize_weapon_data(struct block_list *src, struct block
 						wd.div_ = 4;
 				}
 				break;
-#endif
 			case KN_AUTOCOUNTER:
 				wd.flag = (wd.flag&~BF_SKILLMASK)|BF_NORMAL;
 				break;
@@ -7411,24 +6717,9 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 		wd.dmg_lv = ATK_FLEE;
 	else if(!(infdef = is_infinite_defense(target, wd.flag))) { //no need for math against plants
 
-#ifndef RENEWAL
-		// First call function with skill_id 0 to get base damage of a normal attack
-		battle_calc_skill_base_damage(&wd, src, target, 0, 0); // base damage
-		wd.basedamage = wd.damage;
-		// Now get actual skill damage
-		if (skill_id != 0)
-#endif
 			battle_calc_skill_base_damage(&wd, src, target, skill_id, skill_lv); // base skill damage
 
-#ifndef RENEWAL
-		// Skill ratio
-		ATK_RATE(wd.damage, wd.damage2, battle_calc_attack_skill_ratio(&wd, src, target, skill_id, skill_lv));
 
-		// Additive damage bonus
-		ATK_ADD(wd.damage, wd.damage2, battle_calc_skill_constant_addition(&wd, src, target, skill_id, skill_lv));
-#endif
-
-#ifdef RENEWAL
 		if(skill_id == HW_MAGICCRASHER) { // Add weapon attack for MATK onto Magic Crasher
 			status_data* sstatus = status_get_status_data(*src);
 
@@ -7437,19 +6728,10 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 			} else
 				ATK_ADD(wd.weaponAtk, wd.weaponAtk2, sstatus->matk_min);
 		}
-#endif
 
 		int32 i = 0;
 
-#ifndef RENEWAL
-		// add any miscellaneous player ATK bonuses
-		if( sd && skill_id && (i = pc_skillatk_bonus(sd, skill_id)))
-			ATK_ADDRATE(wd.damage, wd.damage2, i);
-		if (tsd && (i = pc_sub_skillatk_bonus(tsd, skill_id)))
-			ATK_ADDRATE(wd.damage, wd.damage2, -i);
-#endif
 
-#ifdef RENEWAL
 		// In Renewal we only cardfix to the weapon and equip ATK
 		//Card Fix for attacker (sd), 2 is added to the "left" flag meaning "attacker cards only"
 		if (sd) {
@@ -7563,25 +6845,15 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 			wd.damage2 = wd.damage2 * (5000 + res) / (5000 + 10 * res);
 		}
 
-#else
-		// final attack bonuses that aren't affected by cards
-		battle_attack_sc_bonus(&wd, src, target, skill_id, skill_lv);
-#endif
 
 		if (wd.damage + wd.damage2) {
-#ifdef RENEWAL
 			// Check if attack ignores DEF (in pre-renewal we need to update base damage even when the skill ignores DEF)
 			if(!attack_ignores_def(&wd, src, target, skill_id, skill_lv, EQI_HAND_L) || !attack_ignores_def(&wd, src, target, skill_id, skill_lv, EQI_HAND_R))
-#else
-			// Shield Boomerang and Rapid Smiting already calculated the defense before the skill ratio was applied
-			if(skill_id != PA_SHIELDCHAIN && skill_id != CR_SHIELDBOOMERANG)
-#endif
 				battle_calc_defense_reduction(&wd, src, target, skill_id, skill_lv);
 
 			battle_calc_attack_post_defense(&wd, src, target, skill_id, skill_lv);
 		}
 
-#ifdef RENEWAL
 		// add any miscellaneous player ATK bonuses
 		if( sd && skill_id && (i = pc_skillatk_bonus(sd, skill_id))) {
 			ATK_ADDRATE(wd.damage, wd.damage2, i);
@@ -7591,12 +6863,10 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 			ATK_ADDRATE(wd.damage, wd.damage2, -i);
 			RE_ALLATK_ADDRATE(&wd, -i);
 		}
-#endif
 	}
 
 	battle_calc_element_damage(&wd, src, target, skill_id, skill_lv);
 
-#ifdef RENEWAL
 	if (is_attack_critical(&wd, src, target, skill_id, skill_lv, false)) {
 		if (sd) { //Check for player so we don't crash out, monsters don't have bonus crit rates [helvetica]
 			wd.damage = (int64)floor((float)((wd.damage * (1.4f + (0.01f * sstatus->crate)))));
@@ -7608,7 +6878,6 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 		if (tsd && tsd->bonus.crit_def_rate != 0)
 			ATK_ADDRATE(wd.damage, wd.damage2, -tsd->bonus.crit_def_rate);
 	}
-#endif
 
 	switch (skill_id) {
 		case TK_DOWNKICK:
@@ -7671,41 +6940,10 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 	}
 
 	if(sd) {
-#ifndef RENEWAL
-		uint16 skill;
-
-		if ((skill = pc_checkskill(sd, BS_WEAPONRESEARCH)) > 0)
-			ATK_ADD(wd.damage, wd.damage2, skill * 2);
-		if (skill_id == GS_GROUNDDRIFT)
-			ATK_ADD(wd.damage, wd.damage2, 50 * skill_lv);
-		if (skill_id != MC_CARTREVOLUTION && pc_checkskill(sd, BS_HILTBINDING) > 0)
-			ATK_ADD(wd.damage, wd.damage2, 4);
-
-		//Card Fix for attacker (sd), 2 is added to the "left" flag meaning "attacker cards only"
-		switch(skill_id) {
-			case RK_DRAGONBREATH:
-			case RK_DRAGONBREATH_WATER:
-				if(wd.flag&BF_LONG) { //Add check here, because we want to apply the same behavior in pre-renewal [exneval]
-					wd.damage = wd.damage * (100 + sd->bonus.long_attack_atk_rate) / 100;
-					if(is_attack_left_handed(src, skill_id))
-						wd.damage2 = wd.damage2 * (100 + sd->bonus.long_attack_atk_rate) / 100;
-				}
-				break;
-			default:
-				wd.damage += battle_calc_cardfix(BF_WEAPON, src, target, nk, right_element, left_element, wd.damage, 2, wd.flag);
-				if( is_attack_left_handed(src, skill_id ))
-					wd.damage2 += battle_calc_cardfix(BF_WEAPON, src, target, nk, right_element, left_element, wd.damage2, 3, wd.flag);
-				break;
-		}
-#endif
 	}
 
-#ifdef RENEWAL
 	// In renewal only do it for non player attacks
 	if( tsd && !sd ){
-#else
-	if( tsd ){
-#endif
 		// Card Fix for target (tsd), 2 is not added to the "left" flag meaning "target cards only"
 		wd.damage += battle_calc_cardfix(BF_WEAPON, src, target, nk, right_element, left_element, wd.damage, 0, wd.flag);
 		if(is_attack_left_handed(src, skill_id))
@@ -7723,18 +6961,14 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src, struct bl
 
 	battle_calc_attack_left_right_hands(&wd, src, target, skill_id, skill_lv);
 
-#ifdef RENEWAL
 	switch (skill_id) {
 		case NJ_ISSEN:
 			case GN_FIRE_EXPANSION_ACID:
 			return wd; //These skills will do a GVG fix later
 		default:
-#endif
 			battle_calc_attack_gvg_bg(&wd, src, target, skill_id, skill_lv);
-#ifdef RENEWAL
 			break;
 	}
-#endif
 
 	battle_calc_weapon_final_atk_modifiers(&wd, src, target, skill_id, skill_lv);
 
@@ -7860,10 +7094,8 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 
 	if (!flag.infdef) { //No need to do the math for plants
 		uint32 skillratio = 100; //Skill dmg modifiers.
-#ifdef RENEWAL
 		// Some skills do not use S.MATK and skillratio
 		bool has_skillratio = false;
-#endif
 		//Damage was set to 1 to simulate plant damage; if not plant, need to reinitialize damage with 0
 		ad.damage = 0;
 //MATK_RATE scales the damage. 100 = no change. 50 is halved, 200 is doubled, etc
@@ -7887,28 +7119,19 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			case ALL_RESURRECTION:
 			case PR_TURNUNDEAD:
 				//Undead check is on skill_castend_damageid code.
-#ifdef RENEWAL
 				i = 10 * skill_lv + sstatus->luk + sstatus->int_ + status_get_lv(src)
 				  	+ 300 - 300 * tstatus->hp / tstatus->max_hp;
-#else
-				i = 20 * skill_lv + sstatus->luk + sstatus->int_ + status_get_lv(src)
-				  	+ 200 - 200 * tstatus->hp / tstatus->max_hp;
-#endif
 				if(i > 700)
 					i = 700;
 				if(rnd()%1000 < i && !status_has_mode(tstatus,MD_STATUSIMMUNE))
 					ad.damage = tstatus->hp;
 				else {
-#ifdef RENEWAL
 					if (sstatus->matk_max > sstatus->matk_min) {
 						MATK_ADD(sstatus->matk_min+rnd()%(sstatus->matk_max-sstatus->matk_min));
 					} else {
 						MATK_ADD(sstatus->matk_min);
 					}
 					MATK_RATE(skill_lv);
-#else
-					ad.damage = status_get_lv(src) + sstatus->int_ + skill_lv * 10;
-#endif
 				}
 				break;
 			case NPC_DARKBREATH:
@@ -7959,13 +7182,9 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						skillratio += -30 + 10 * skill_lv;
 						break;
 					case MG_FIREBALL:
-#ifdef RENEWAL
 						skillratio += 40 + 20 * skill_lv;
 						if(ad.miscflag == 2) //Enemies at the edge of the area will take 75% of the damage
 							skillratio = skillratio * 3 / 4;
-#else
-						skillratio += -30 + 10 * skill_lv;
-#endif
 						break;
 					case MG_SOULSTRIKE:
 						if (battle_check_undead(tstatus->race,tstatus->def_ele))
@@ -7993,9 +7212,6 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						break;
 					case MG_THUNDERSTORM:
 						// in Renewal Thunder Storm boost is 100% (in pre-re, 80%)
-#ifndef RENEWAL
-						skillratio -= 20;
-#endif
 						break;
 					case MG_FROSTDIVER:
 						skillratio += 10 * skill_lv;
@@ -8023,27 +7239,17 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						skillratio += 30 * skill_lv;
 						break;
 					case WZ_STORMGUST:
-#ifdef RENEWAL
 						skillratio -= 30; // Offset only once
 						skillratio += 50 * skill_lv;
-#else
-						skillratio += 40 * skill_lv;
-#endif
 						break;
-#ifdef RENEWAL
 					case WZ_EARTHSPIKE:
 						skillratio += 100;
 						if (sc && sc->getSCE(SC_EARTH_CARE_OPTION))
 							skillratio += skillratio * 800 / 100;
 						break;
-#endif
 					case HW_NAPALMVULCAN:
-#ifdef RENEWAL
 						skillratio += -100 + 70 * skill_lv;
 						RE_LVL_DMOD(100);
-#else
-						skillratio += 25;
-#endif
 						break;
 					case SL_STIN: //Target size must be small (0) for full damage
 						skillratio += (tstatus->size != SZ_SMALL ? -99 : 10 * skill_lv);
@@ -8070,11 +7276,9 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 							skillratio += 100 * sd->spiritcharm;
 						break;
 					case NJ_HYOUSENSOU:
-#ifdef RENEWAL
 						skillratio -= 30;
 						if (sc && sc->getSCE(SC_SUITON))
 							skillratio += 2 * skill_lv;
-#endif
 						if(sd && sd->spiritcharm_type == CHARM_TYPE_WATER && sd->spiritcharm > 0)
 							skillratio += 20 * sd->spiritcharm;
 						break;
@@ -8084,11 +7288,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 							skillratio += 100 * sd->spiritcharm;
 						break;
 					case NJ_RAIGEKISAI:
-#ifdef RENEWAL
 						skillratio += 100 * skill_lv;
-#else
-						skillratio += 60 + 40 * skill_lv;
-#endif
 						if(sd && sd->spiritcharm_type == CHARM_TYPE_WIND && sd->spiritcharm > 0)
 							skillratio += 20 * sd->spiritcharm;
 						break;
@@ -8098,16 +7298,13 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 							skillratio += 100 * sd->spiritcharm;
 						break;
 					case NJ_HUUJIN:
-#ifdef RENEWAL
 						skillratio += 50;
-#endif
 						if(sd && sd->spiritcharm_type == CHARM_TYPE_WIND && sd->spiritcharm > 0)
 							skillratio += 10 * sd->spiritcharm;
 						break;
 					case NPC_ENERGYDRAIN:
 						skillratio += 100 * skill_lv;
 						break;
-#ifdef RENEWAL
 					case WZ_HEAVENDRIVE:
 					case NPC_GROUNDDRIVE:
 						skillratio += 25;
@@ -8141,11 +7338,6 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					case WZ_SIGHTBLASTER:
 						skillratio += 500;
 						break;
-#else
-					case WZ_VERMILION:
-						skillratio += 20 * skill_lv - 20;
-						break;
-#endif
 					case AB_JUDEX:
 						skillratio += -100 + 300 + 70 * skill_lv;
 						RE_LVL_DMOD(100);
@@ -8793,18 +7985,13 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 						(sc->getSCE(SC_EARTH_INSIGNIA) && sc->getSCE(SC_EARTH_INSIGNIA)->val1 == 3 && s_ele == ELE_EARTH))
 						skillratio += 25;
 				}
-#ifdef RENEWAL
 				has_skillratio = true;
-#else
-				MATK_RATE(skillratio);
-#endif
 				//Constant/misc additions from skills
 				if (skill_id == WZ_FIREPILLAR)
 					MATK_ADD(100 + 50 * skill_lv);
 				break;
 			}
 		}
-#ifdef RENEWAL
 		// Damage modifier need to be applied before SMATK
 		ad.damage += battle_calc_cardfix(BF_MAGIC, src, target, nk, s_ele, 0, ad.damage, 0, ad.flag);
 
@@ -8821,14 +8008,8 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 
 			MATK_RATE(skillratio);
 		}
-#endif
 
 		if(sd) {
-#ifndef RENEWAL
-			//Damage bonuses
-			if ((i = pc_skillatk_bonus(sd, skill_id)))
-				ad.damage += (int64)ad.damage*i/100;
-#endif
 
 			//Ignore Defense?
 			if (!flag.imdef && (
@@ -8842,7 +8023,6 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 		if (tsd && (i = pc_sub_skillatk_bonus(tsd, skill_id)))
 			ad.damage -= (int64)ad.damage*i/100;
 
-#ifdef RENEWAL
 		// MRes reduces magical damage by a percentage and
 		// is calculated before MDEF and other reductions.
 		// TODO: MRes formula probably should be: (2000+x)/(2000+5x), but with the reduction rounded down
@@ -8865,7 +8045,6 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 			// Apply damage reduction.
 			ad.damage = ad.damage * (5000 + mres) / (5000 + 10 * mres);
 		}
-#endif
 
 		if(!flag.imdef){
 			// Bonuses ignoring Mdef are added together
@@ -8888,7 +8067,6 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 
 			i = cap_value(i, 0, 100);
 
-#ifdef RENEWAL
 			// On renewal, Mdef is rounded after calculation
 			if (i > 0) {
 				mdef = (defType)( (float)(mdef - mdef * i / 100.) );
@@ -8902,25 +8080,13 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 				mdef = 0; // Negative eMDEF is treated as 0 on official
 
 			ad.damage = ad.damage * (1000 + mdef) / (1000 + mdef * 10) - mdef2;
-#else
-			// On pre-renewal, Mdef reduction is rounded down before being subtracted from Mdef
-			if (i > 0)
-				mdef -= mdef * i / 100;
-
-			if(battle_config.magic_defense_type)
-				ad.damage = ad.damage - mdef*battle_config.magic_defense_type - mdef2;
-			else
-				ad.damage = ad.damage * (100-mdef)/100 - mdef2;
-#endif
 		}
 
 		i = 0;	// pc_skillatk_bonus ratio
 
-#ifdef RENEWAL
 		// pc_skillatk_bonus must be after def reduction and before the damages applied when the target is hit (at least on renewal)
 		if (sd != nullptr)
 			i += pc_skillatk_bonus(sd, skill_id);
-#endif
 
 		// Buffs added to pc_skillatk_bonus (renewal) ratio
 		switch (skill_id) {
@@ -8973,29 +8139,16 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 				struct Damage wd = initialize_weapon_data(src, target, skill_id, skill_lv, mflag);
 				battle_calc_skill_base_damage(&wd, src, target, skill_id, skill_lv);
 				// Calculate ATK
-#ifdef RENEWAL
 				if (sd)
 					wd.damage = wd.statusAtk + wd.weaponAtk + wd.equipAtk + wd.percentAtk;
-#else
-				battle_calc_defense_reduction(&wd, src, target, skill_id, skill_lv);
-				if (sd) {
-					wd.damage += sstatus->rhw.atk2;
-				}
-#endif
 				// Combine ATK and MATK
-#ifdef RENEWAL
 				ad.damage = (wd.damage + ad.damage) / 2;
-#else
-				ad.damage = std::max((int64)1, wd.damage + ad.damage);
-#endif
 				// Ratio
 				skillratio += 40 * skill_lv;
 				MATK_RATE(skillratio);
-#ifdef RENEWAL
 				// Total defense reduction (renewal only)
 				battle_calc_defense_reduction(&ad, src, target, skill_id, skill_lv);
 				ad.damage -= (tstatus->mdef + tstatus->mdef2);
-#endif
 			}
 			break;
 		}
@@ -9031,9 +8184,6 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 		if (!nk[NK_IGNOREELEMENT])
 			ad.damage = battle_attr_fix(src, target, ad.damage, s_ele, tstatus->def_ele, tstatus->ele_lv);
 
-#ifndef RENEWAL
-		ad.damage += battle_calc_cardfix(BF_MAGIC, src, target, nk, s_ele, 0, ad.damage, 0, ad.flag);
-#endif
 
 		switch (skill_id) {
 			case CR_GRANDCROSS:
@@ -9139,7 +8289,6 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		case NPC_KILLING_AURA:
 			md.damage = 10000;
 			break;
-#ifdef RENEWAL
 		case HT_LANDMINE:
 		case MA_LANDMINE:
 		case HT_BLASTMINE:
@@ -9148,18 +8297,6 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			md.damage += md.damage * (rnd()%20 - 10) / 100;
 			md.damage += (sd ? pc_checkskill(sd,RA_RESEARCHTRAP) * 40 : 0);
 			break;
-#else
-		case HT_LANDMINE:
-		case MA_LANDMINE:
-			md.damage = static_cast<decltype(md.damage)>(skill_lv * (sstatus->dex + 75.0) * (100.0 + sstatus->int_) / 100.0);
-			break;
-		case HT_BLASTMINE:
-			md.damage = static_cast<decltype(md.damage)>(skill_lv * (sstatus->dex / 2.0 + 50.0) * (100.0 + sstatus->int_) / 100.0);
-			break;
-		case HT_CLAYMORETRAP:
-			md.damage = static_cast<decltype(md.damage)>(skill_lv * (sstatus->dex / 2.0 + 75.0) * (100.0 + sstatus->int_) / 100.0);
-			break;
-#endif
 		case HT_BLITZBEAT:
 		case SN_FALCONASSAULT:
 			{
@@ -9168,14 +8305,8 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				//Blitz-beat Damage
 				if(!sd || !(skill = pc_checkskill(sd,HT_STEELCROW)))
 					skill = 0;
-#ifdef RENEWAL
 				md.damage = (sstatus->dex / 10 + sstatus->agi / 2 + skill * 3 + 40) * 2;
 				RE_LVL_MDMOD(100);
-#else
-				md.damage = (sstatus->dex / 10 + sstatus->int_ / 2 + skill * 3 + 40) * 2;
-				if(mflag > 1) //Autocasted Blitz
-					nk.set(NK_SPLASHSPLIT);
-#endif
 				if (skill_id == SN_FALCONASSAULT) {
 					//Div fix of Blitzbeat
 					DAMAGE_DIV_FIX2(md.damage, skill_get_num(HT_BLITZBEAT, 5));
@@ -9184,13 +8315,6 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				}
 			}
 			break;
-#ifndef RENEWAL
-		case BA_DISSONANCE:
-			md.damage = 30 + skill_lv * 10;
-			if (sd)
-				md.damage += 3 * pc_checkskill(sd,BA_MUSICALLESSON);
-			break;
-#endif
 		case NPC_SELFDESTRUCTION:
 			md.damage = sstatus->hp;
 			break;
@@ -9200,37 +8324,18 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		case NPC_EVILLAND:
 			md.damage = skill_calc_heal(src,target,skill_id,skill_lv,false);
 			break;
-#ifndef RENEWAL
-		case ASC_BREAKER:
-			md.damage = 500 + rnd()%500 + 5 * skill_lv * sstatus->int_;
-			nk.set(NK_IGNOREFLEE);
-			nk.set(NK_IGNOREELEMENT); //These two are not properties of the weapon based part.
-			break;
-		case HW_GRAVITATION:
-			md.damage = 200 + 200 * skill_lv;
-			md.dmotion = 0; //No flinch animation
-			break;
-		case PA_PRESSURE:
-			md.damage = 500 + 300 * skill_lv;
-			break;
-#endif
 		case PA_GOSPEL:
 			if (mflag > 0)
 				md.damage = (rnd() % 4000) + 1500;
 			else {
 				md.damage = (rnd() % 5000) + 3000;
-#ifdef RENEWAL
 				md.damage -= (int64)status_get_def(target);
-#else
-				md.damage -= (md.damage * (int64)status_get_def(target)) / 100;
-#endif
 				md.damage -= tstatus->def2;
 				if (md.damage < 0)
 					md.damage = 0;
 			}
 			break;
 		case GN_FIRE_EXPANSION_ACID:
-#ifdef RENEWAL
 			// Official Renewal formula [helvetica]
 			// damage = 7 * ((atk + matk)/skill level) * (target vit/100)
 			// skill is a "forced neutral" type skill, it benefits from weapon element but final damage
@@ -9244,15 +8349,6 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				md.damage = battle_attr_fix(src, target, md.damage, ELE_NEUTRAL, tstatus->def_ele, tstatus->ele_lv);
 			}
 			// Fall through
-#else
-		case CR_ACIDDEMONSTRATION:
-			if(tstatus->vit+sstatus->int_) //crash fix
-				md.damage = (int)((int64)7*tstatus->vit*sstatus->int_*sstatus->int_ / (10*(tstatus->vit+sstatus->int_)));
-			else
-				md.damage = 0;
-			if (tsd)
-				md.damage /= 2;
-#endif
 			break;
 		case NJ_ZENYNAGE:
 			md.damage = skill_get_zeny( skill_id, skill_lv );
@@ -9290,7 +8386,6 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				md.damage /= 2;
 			}
 			break;
-#ifdef RENEWAL
 		case NJ_ISSEN:
 			// Official Renewal formula [helvetica]
 			// base damage = currenthp + ((atk * currenthp * skill level) / maxhp)
@@ -9313,7 +8408,6 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 				md.flag |= BF_WEAPON;
 			}
 			break;
-#endif
 		case GS_FLING:
 			md.damage = (sd ? sd->status.job_level : status_get_lv(src));
 			break;
@@ -9389,11 +8483,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		else {
 			short
 				flee = tstatus->flee,
-#ifdef RENEWAL
 				hitrate = 0; //Default hitrate
-#else
-				hitrate = 80; //Default hitrate
-#endif
 
 			if(battle_config.agi_penalty_type && battle_config.agi_penalty_target&target->type) {
 				unsigned char attacker_count = unit_counttargeted(target); //256 max targets should be a sane max
@@ -9409,10 +8499,8 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 			}
 
 			hitrate += sstatus->hit - flee;
-#ifdef RENEWAL
 			if( sd ) //in Renewal hit bonus from Vultures Eye is not shown anymore in status window
 				hitrate += pc_checkskill(sd,AC_VULTURE);
-#endif
 			hitrate = cap_value(hitrate, battle_config.min_hitrate, battle_config.max_hitrate);
 
 			if(rnd()%100 < hitrate)
@@ -9977,11 +9065,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 						break;
 					case W_GRENADE:
 						if (sd->inventory_data[index]->subtype !=
-#ifdef RENEWAL
 							AMMO_BULLET) {
-#else
-							AMMO_GRENADE) {
-#endif
 							clif_skill_fail( *sd, 0, USESKILL_FAIL_NEED_MORE_BULLET );
 							return ATK_NONE;
 						}
@@ -10015,18 +9099,13 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 	}
 
 	if( tsc && tsc->getSCE(SC_BLADESTOP_WAIT) &&
-#ifndef RENEWAL
-		status_get_class_(src) != CLASS_BOSS &&
-#endif
 		(src->type == BL_PC || tsd == nullptr || distance_bl(src, target) <= (tsd->status.weapon == W_FIST ? 1 : 2)) )
 	{
 		uint16 skill_lv = tsc->getSCE(SC_BLADESTOP_WAIT)->val1;
 		int32 duration = skill_get_time2(MO_BLADESTOP,skill_lv);
 
-#ifdef RENEWAL
 			if (status_get_class_(src) == CLASS_BOSS)
 				duration = 2000; // Only lasts 2 seconds for Boss monsters
-#endif
 		status_change_end(target, SC_BLADESTOP_WAIT);
 		if(sc_start4(src,src, SC_BLADESTOP, 100, sd?pc_checkskill(sd, MO_BLADESTOP):5, 0, 0, target->id, duration))
 		{	//Target locked.
@@ -10038,11 +9117,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 	}
 
 	if(sd && (skillv = pc_checkskill(sd,MO_TRIPLEATTACK)) > 0) {
-#ifdef RENEWAL
 		int32 triple_rate = 30; //Base Rate
-#else
-		int32 triple_rate = 30 - skillv; //Base Rate
-#endif
 
 		if (sc && sc->getSCE(SC_SKILLRATE_UP) && sc->getSCE(SC_SKILLRATE_UP)->val1 == MO_TRIPLEATTACK) {
 			triple_rate+= triple_rate*(sc->getSCE(SC_SKILLRATE_UP)->val2)/100;
@@ -11048,11 +10123,7 @@ static const struct _battle_data {
 	{ "player_damage_delay_rate",           &battle_config.pc_damage_delay_rate,            100,    0,      INT_MAX,        },
 	{ "defunit_not_enemy",                  &battle_config.defnotenemy,                     0,      0,      1,              },
 	{ "gvg_traps_target_all",               &battle_config.vs_traps_bctall,                 BL_PC,  BL_NUL, BL_ALL,         },
-#ifdef RENEWAL
 	{ "traps_setting",                      &battle_config.traps_setting,                   2,      0,      2,              },
-#else
-	{ "traps_setting",                      &battle_config.traps_setting,                   0,      0,      2,              },
-#endif
 	{ "summon_flora_setting",               &battle_config.summon_flora,                    1|2,    0,      1|2,            },
 	{ "clear_skills_on_death",              &battle_config.clear_unit_ondeath,              BL_NUL, BL_NUL, BL_ALL,         },
 	{ "clear_skills_on_warp",               &battle_config.clear_unit_onwarp,               BL_ALL, BL_NUL, BL_ALL,         },
@@ -11088,11 +10159,7 @@ static const struct _battle_data {
 	{ "gtb_sc_immunity",                    &battle_config.gtb_sc_immunity,                 50,     0,      INT_MAX,        },
 	{ "guild_max_castles",                  &battle_config.guild_max_castles,               0,      0,      INT_MAX,        },
 	{ "guild_skill_relog_delay",            &battle_config.guild_skill_relog_delay,         300000, 0,      INT_MAX,        },
-#ifdef RENEWAL
 	{ "guild_skill_relog_type",             &battle_config.guild_skill_relog_type,          0,      0,      1,              },
-#else
-	{ "guild_skill_relog_type",             &battle_config.guild_skill_relog_type,          1,      0,      1,              },
-#endif
 	{ "emergency_call",                     &battle_config.emergency_call,                  11,     0,      31,             },
 	{ "atcommand_spawn_quantity_limit",     &battle_config.atc_spawn_quantity_limit,        100,    0,      INT_MAX,        },
 	{ "atcommand_slave_clone_limit",        &battle_config.atc_slave_clone_limit,           25,     0,      INT_MAX,        },
@@ -11447,11 +10514,7 @@ static const struct _battle_data {
 	{ "allow_consume_restricted_item",      &battle_config.allow_consume_restricted_item,   1,      0,      1,              },
 	{ "allow_equip_restricted_item",        &battle_config.allow_equip_restricted_item,     1,      0,      1,              },
 	{ "max_walk_path",                      &battle_config.max_walk_path,                   17,     1,      MAX_WALKPATH,   },
-#ifdef RENEWAL
 	{ "item_enabled_npc",                   &battle_config.item_enabled_npc,                0,      0,      1,              },
-#else
-	{ "item_enabled_npc",                   &battle_config.item_enabled_npc,                1,      0,      1,              },
-#endif
 	{ "item_flooritem_check",               &battle_config.item_onfloor,                    1,      0,      1,              },
 	{ "bowling_bash_area",                  &battle_config.bowling_bash_area,               0,      0,      20,             },
 	{ "drop_rateincrease",                  &battle_config.drop_rateincrease,               0,      0,      1,              },
@@ -11646,20 +10709,11 @@ static const struct _battle_data {
 
 	{ "feature.stylist",                    &battle_config.feature_stylist,                 1,      0,      1,              },
 	{ "feature.banking_state_enforce",      &battle_config.feature_banking_state_enforce,   0,      0,      1,              },
-#ifdef RENEWAL
 	{ "feature.instance_allow_reconnect",   &battle_config.instance_allow_reconnect,        1,      0,      1,              },
-#else
-	{ "feature.instance_allow_reconnect",   &battle_config.instance_allow_reconnect,        0,      0,      1,              },
-#endif
 	{ "synchronize_damage",                 &battle_config.synchronize_damage,              0,      0,      1,              },
 	{ "item_stacking",                      &battle_config.item_stacking,                   1,      0,      1,              },
-#ifdef RENEWAL
 	{ "hom_delay_reset_vaporize",           &battle_config.hom_delay_reset_vaporize,        0,      0,      1,              },
 	{ "hom_delay_reset_warp",               &battle_config.hom_delay_reset_warp,            0,      0,      1,              },
-#else
-	{ "hom_delay_reset_vaporize",           &battle_config.hom_delay_reset_vaporize,        1,      0,      1,              },
-	{ "hom_delay_reset_warp",               &battle_config.hom_delay_reset_warp,            1,      0,      1,              },
-#endif
 
 #include <custom/battle_config_init.inc>
 };

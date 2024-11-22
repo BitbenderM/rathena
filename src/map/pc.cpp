@@ -1738,18 +1738,6 @@ static bool pc_isItemClass (map_session_data *sd, struct item_data* item) {
 	while (1) {
 		if (item->class_upper&ITEMJ_NORMAL && !(sd->class_&(JOBL_UPPER|JOBL_BABY|JOBL_THIRD|JOBL_FOURTH)))	//normal classes (no upper, no baby, no third, no fourth)
 			break;
-#ifndef RENEWAL
-		//allow third classes to use trans. class items
-		if (item->class_upper&ITEMJ_UPPER && sd->class_&(JOBL_UPPER|JOBL_THIRD))	//trans. classes
-			break;
-		//third-baby classes can use same item too
-		if (item->class_upper&ITEMJ_BABY && sd->class_&JOBL_BABY)	//baby classes
-			break;
-		//don't need to decide specific rules for third-classes?
-		//items for third classes can be used for all third classes
-		if (item->class_upper&(ITEMJ_THIRD|ITEMJ_THIRD_UPPER|ITEMJ_THIRD_BABY) && sd->class_&JOBL_THIRD)
-			break;
-#else
 		//trans. classes (exl. third-trans.)
 		if (item->class_upper&ITEMJ_UPPER && sd->class_&JOBL_UPPER && !(sd->class_&JOBL_THIRD))
 			break;
@@ -1768,7 +1756,6 @@ static bool pc_isItemClass (map_session_data *sd, struct item_data* item) {
 		//fourth classes
 		if (item->class_upper&ITEMJ_FOURTH && sd->class_&JOBL_FOURTH)
 			break;
-#endif
 		return false;
 	}
 	return true;
@@ -1841,22 +1828,12 @@ uint8 pc_isequip(map_session_data *sd,int32 n)
 			case AMMO_BULLET:
 			case AMMO_SHELL:
 				if (battle_config.ammo_check_weapon && sd->status.weapon != W_REVOLVER && sd->status.weapon != W_RIFLE && sd->status.weapon != W_GATLING && sd->status.weapon != W_SHOTGUN
-#ifdef RENEWAL
 					&& sd->status.weapon != W_GRENADE
-#endif
 					) {
 					clif_msg(sd, MSI_WRONG_BULLET);
 					return ITEM_EQUIP_ACK_FAIL;
 				}
 				break;
-#ifndef RENEWAL
-			case AMMO_GRENADE:
-				if (battle_config.ammo_check_weapon && sd->status.weapon != W_GRENADE) {
-					clif_msg(sd, MSI_WRONG_BULLET);
-					return ITEM_EQUIP_ACK_FAIL;
-				}
-				break;
-#endif
 			case AMMO_CANNONBALL:
 				if (!pc_ismadogear(sd) && (sd->status.class_ == JOB_MECHANIC_T || sd->status.class_ == JOB_MECHANIC)) {
 					clif_msg(sd, MSI_USESKILL_FAIL_MADOGEAR); // Item can only be used when Mado Gear is mounted.
@@ -2960,11 +2937,7 @@ void pc_updateweightstatus(map_session_data *sd)
 	nullpo_retv(sd);
 
 	old_overweight = (sd->sc.getSCE(SC_WEIGHT90)) ? 2 : (sd->sc.getSCE(SC_WEIGHT50)) ? 1 : 0;
-#ifdef RENEWAL
 	new_overweight = (pc_is90overweight(sd)) ? 2 : (pc_is70overweight(sd)) ? 1 : 0;
-#else
-	new_overweight = (pc_is90overweight(sd)) ? 2 : (pc_is50overweight(sd)) ? 1 : 0;
-#endif
 
 	if( old_overweight == new_overweight )
 		return; // no change
@@ -3691,23 +3664,14 @@ void pc_bonus(map_session_data *sd,int32 type,int32 val)
 			break;
 		case SP_BASE_ATK:
 			if(sd->state.lr_flag != 2) {
-#ifdef RENEWAL
 				bonus = sd->bonus.eatk + val;
 				sd->bonus.eatk = cap_value(bonus, SHRT_MIN, SHRT_MAX);
-#else
-				bonus = status->batk + val;
-				status->batk = cap_value(bonus, 0, USHRT_MAX);
-#endif
 			}
 			break;
 		case SP_DEF1:
 			if(sd->state.lr_flag != 2) {
 				bonus = status->def + val;
-#ifdef RENEWAL
 				status->def = cap_value(bonus, SHRT_MIN, SHRT_MAX);
-#else
-				status->def = cap_value(bonus, CHAR_MIN, CHAR_MAX);
-#endif
 			}
 			break;
 		case SP_DEF2:
@@ -3719,11 +3683,7 @@ void pc_bonus(map_session_data *sd,int32 type,int32 val)
 		case SP_MDEF1:
 			if(sd->state.lr_flag != 2) {
 				bonus = status->mdef + val;
-#ifdef RENEWAL
 				status->mdef = cap_value(bonus, SHRT_MIN, SHRT_MAX);
-#else
-				status->mdef = cap_value(bonus, CHAR_MIN, CHAR_MAX);
-#endif
 				if( sd->state.lr_flag == 3 ) {//Shield, used for royal guard
 					sd->bonus.shieldmdef += bonus;
 				}
@@ -6261,32 +6221,19 @@ bool pc_isUseitem(map_session_data *sd,int32 n)
 
 	// Safe check type cash disappear when overweight [Napster]
 	if( item->flag.group || item->type == IT_CASH ){
-#ifdef RENEWAL
 		// Check if the player is not overweighted
 		// In Renewal the limit is 70% weight and gives the same error message
 		if (pc_is70overweight(sd)) {
 			clif_msg_color(sd, MSI_PICKUP_FAILED_ITEMCREATE, color_table[COLOR_RED]);
 			return 0;
 		}
-#else
-		// Check if the player is not overweighted
-		// In Pre-Renewal the limit is 50% weight and gives a specific error message
-		if (pc_is50overweight(sd)) {
-			clif_msg_color(sd, MSI_CANT_GET_ITEM_BECAUSE_WEIGHT, color_table[COLOR_RED]);
-			return 0;
-		}
-#endif
 
 		// Check if the player has enough free spaces in the inventory
 		// Official servers use 10 as the minimum amount of slots required to get the items
 		// The <= is intentional, as in official servers you actually need an extra empty slot
 		// TODO: Count the items the player will get and check for the actual inventory space required std::max<size_t>( count, 10 )
 		if (pc_inventoryblank(sd) <= 10) {
-#ifdef RENEWAL
 			clif_msg_color(sd, MSI_PICKUP_FAILED_ITEMCREATE, color_table[COLOR_RED]);
-#else
-			clif_msg_color(sd, MSI_CANT_GET_ITEM_BECAUSE_COUNT, color_table[COLOR_RED]);
-#endif
 			return 0;
 		}
 	}
@@ -6344,9 +6291,7 @@ int32 pc_useitem(map_session_data *sd,int32 n)
 		}
 
 		if( pc_hasprogress( sd, WIP_DISABLE_SKILLITEM ) || !sd->npc_item_flag ){
-#ifdef RENEWAL
 			clif_msg( sd, MSI_BUSY);
-#endif
 			return 0;
 		}
 	}
@@ -6699,9 +6644,7 @@ bool pc_steal_item(map_session_data *sd,struct block_list *bl, uint16 skill_lv)
 	rate += sd->bonus.add_steal_rate;
 
 	if( rate < 1
-#ifdef RENEWAL
 		|| rnd()%100 >= rate
-#endif
 	)
 		return false;
 
@@ -6709,9 +6652,6 @@ bool pc_steal_item(map_session_data *sd,struct block_list *bl, uint16 skill_lv)
 	// Droprate is affected by the skill success rate.
 	for( i = 0; i < MAX_MOB_DROP; i++ )
 		if( item_db.exists(md->db->dropitem[i].nameid) && !md->db->dropitem[i].steal_protected && rnd() % 10000 < md->db->dropitem[i].rate
-#ifndef RENEWAL
-		* rate/100.
-#endif
 		)
 			break;
 	if( i == MAX_MOB_DROP )
@@ -7192,15 +7132,7 @@ uint8 pc_checkskill(map_session_data *sd, uint16 skill_id)
 	if (sd == nullptr)
 		return 0;
 
-#ifdef RENEWAL
 	if ((idx = skill_get_index(skill_id)) == 0) {
-#else
-	if( ( idx = skill_db.get_index( skill_id, skill_id >= RK_ENCHANTBLADE, __FUNCTION__, __FILE__, __LINE__ ) ) == 0 ){
-		if( skill_id >= RK_ENCHANTBLADE ){
-			// Silently fail for now -> future update planned
-			return 0;
-		}
-#endif
 		ShowError("pc_checkskill: Invalid skill id %d (char_id=%d).\n", skill_id, sd->status.char_id);
 		return 0;
 	}
@@ -7221,15 +7153,7 @@ uint8 pc_checkskill(map_session_data *sd, uint16 skill_id)
 e_skill_flag pc_checkskill_flag(map_session_data &sd, uint16 skill_id) {
 	uint16 idx;
 
-#ifdef RENEWAL
 	if ((idx = skill_get_index(skill_id)) == 0) {
-#else
-	if ((idx = skill_db.get_index(skill_id, skill_id >= RK_ENCHANTBLADE, __FUNCTION__, __FILE__, __LINE__)) == 0) {
-		if (skill_id >= RK_ENCHANTBLADE) {
-			// Silently fail for now -> future update planned
-			return SKILL_FLAG_NONE;
-		}
-#endif
 		ShowError("pc_checkskill_flag: Invalid skill id %d (char_id=%d).\n", skill_id, sd.status.char_id);
 		return SKILL_FLAG_NONE;
 	}
@@ -10124,11 +10048,7 @@ int64 pc_readparam(map_session_data* sd,int64 type)
 		case SP_CRITICAL:        val = sd->battle_status.cri/10; break;
 		case SP_ASPD:            val = (2000-sd->battle_status.amotion)/10; break;
 		case SP_BASE_ATK:
-#ifdef RENEWAL
 			val = sd->bonus.eatk;
-#else
-			val = sd->battle_status.batk;
-#endif
 			break;
 		case SP_DEF1:		     val = sd->battle_status.def; break;
 		case SP_DEF2:		     val = sd->battle_status.def2; break;
@@ -10614,20 +10534,16 @@ int32 pc_itemheal(map_session_data *sd, t_itemid itemid, int32 hp, int32 sp)
 			sp += sp / 10;
 		}
 
-#ifdef RENEWAL
 		if (sd->sc.getSCE(SC_APPLEIDUN))
 			hp += sd->sc.getSCE(SC_APPLEIDUN)->val3 / 100;
-#endif
 
 		if (penalty > 0) {
 			hp -= hp * penalty / 100;
 			sp -= sp * penalty / 100;
 		}
 
-#ifdef RENEWAL
 		if (sd->sc.getSCE(SC_EXTREMITYFIST))
 			sp = 0;
-#endif
 		if (sd->sc.getSCE(SC_BITESCAR))
 			hp = 0;
 	}
@@ -11956,11 +11872,7 @@ bool pc_equipitem(map_session_data *sd,short n,int32 req_pos,bool equipswitch)
 	} else if(pos == EQP_ARMS && id->equip == EQP_HAND_R) { //Dual wield capable weapon.
 		pos = (req_pos&EQP_ARMS);
 		if (pos == EQP_ARMS) //User specified both slots, pick one for them.
-#ifdef RENEWAL
 			pos = (equip_index[EQI_HAND_R] >= 0 && equip_index[EQI_HAND_L] < 0) ? EQP_HAND_L : EQP_HAND_R;
-#else
-			pos = equip_index[EQI_HAND_R] >= 0 ? EQP_HAND_L : EQP_HAND_R;
-#endif
 	} else if(pos == EQP_SHADOW_ACC) { // Shadow System
 		pos = req_pos&EQP_SHADOW_ACC;
 		if (pos == EQP_SHADOW_ACC)
@@ -12058,18 +11970,10 @@ bool pc_equipitem(map_session_data *sd,short n,int32 req_pos,bool equipswitch)
 				case AMMO_BULLET:
 				case AMMO_SHELL:
 					if (id->subtype != W_REVOLVER && id->subtype != W_RIFLE && id->subtype != W_GATLING && id->subtype != W_SHOTGUN
-#ifdef RENEWAL
 						&& id->subtype != W_GRENADE
-#endif
 						)
 						pc_unequipitem(sd, idx, 2 | 4);
 					break;
-#ifndef RENEWAL
-				case AMMO_GRENADE:
-					if (id->subtype != W_GRENADE)
-						pc_unequipitem(sd, idx, 2 | 4);
-					break;
-#endif
 			}
 		}
 	}
@@ -12280,11 +12184,7 @@ bool pc_unequipitem(map_session_data *sd, int32 n, int32 flag) {
 		clif_changelook(&sd->bl,LOOK_WEAPON,sd->status.weapon);
 		if( !battle_config.dancing_weaponswitch_fix )
 			status_change_end(&sd->bl, SC_DANCING); // Unequipping => stop dancing.
-#ifdef RENEWAL
 		if (battle_config.switch_remove_edp&2) {
-#else
-		if (battle_config.switch_remove_edp&1) {
-#endif
 			status_change_end(&sd->bl, SC_EDP);
 		}
 	}
@@ -12338,10 +12238,6 @@ bool pc_unequipitem(map_session_data *sd, int32 n, int32 flag) {
 	}
 
 	// On equipment change
-#ifndef RENEWAL
-	if (!(flag&4))
-		status_change_end(&sd->bl, SC_CONCENTRATION);
-#endif
 
 	// On ammo change
 	if (sd->inventory_data[n]->type == IT_AMMO && (sd->inventory_data[n]->nameid != ITEMID_SILVER_BULLET || sd->inventory_data[n]->nameid != ITEMID_PURIFICATION_BULLET || sd->inventory_data[n]->nameid != ITEMID_SILVER_BULLET_))
@@ -13568,10 +13464,6 @@ static uint32 pc_calc_basehp(uint16 level, uint16 job_id) {
 	std::shared_ptr<s_job_info> job = job_db.find(job_id);
 	double base_hp = 35 + level * (job->hp_increase / 100.);
 
-#ifndef RENEWAL
-	if (level >= 10 && (job_id == JOB_NINJA || job_id == JOB_GUNSLINGER))
-		base_hp += 90;
-#endif
 	for (uint16 i = 2; i <= level; i++)
 		base_hp += floor(((job->hp_factor / 100.) * i) + 0.5); //Don't have round()
 	if (job_id == JOB_SUMMONER || job_id == JOB_SPIRIT_HANDLER)
@@ -13707,9 +13599,7 @@ uint64 JobDatabase::parseBodyNode(const ryml::NodeRef& node) {
 				const ryml::NodeRef& aspdNode = node["BaseASPD"];
 				uint8 max = MAX_WEAPON_TYPE;
 
-#ifdef RENEWAL // Renewal adds an extra column for shields
 				max += 1;
-#endif
 
 				if (!exists) {
 					job->aspd_base.resize(max);
@@ -13743,9 +13633,7 @@ uint64 JobDatabase::parseBodyNode(const ryml::NodeRef& node) {
 				if (!exists) {
 					uint8 max = MAX_WEAPON_TYPE;
 
-#ifdef RENEWAL // Renewal adds an extra column for shields
 					max += 1;
-#endif
 					job->aspd_base.resize(max);
 					std::fill(job->aspd_base.begin(), job->aspd_base.end(), 2000);
 				}
@@ -14992,11 +14880,7 @@ void pc_bonus_script_clear(map_session_data *sd, uint32 flag) {
 void pc_cell_basilica(map_session_data *sd) {
 	nullpo_retv(sd);
 
-#ifdef RENEWAL
 	enum sc_type type = SC_BASILICA_CELL;
-#else
-	enum sc_type type = SC_BASILICA;
-#endif
 
 	if (!map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKBASILICA)) {
 		if (sd->sc.getSCE(type))

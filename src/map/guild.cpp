@@ -836,12 +836,6 @@ int32 guild_recv_info(const struct mmo_guild &sg) {
 		//Perform the check on the user because the first load
 		guild_check_member(sg);
 		if ((sd = map_nick2sd(sg.master,false)) != nullptr) {
-#ifndef RENEWAL
-			//If the guild master is online the first time the guild_info is received,
-			//that means he was the first to join, so apply guild skill blocking here.
-			if( battle_config.guild_skill_relog_delay )
-				guild_block_skill(sd, battle_config.guild_skill_relog_delay);
-#endif
 
 			//Also set the guild master flag.
 			sd->state.gmaster_flag = 1;
@@ -1079,11 +1073,6 @@ void guild_member_joined(map_session_data *sd) {
 	}
 	if (strcmp(sd->status.name,g->guild.master) == 0) {	// set the Guild Master flag
 		sd->state.gmaster_flag = 1;
-#ifndef RENEWAL
-		// prevent Guild Skills from being used directly after relog
-		if( sd->state.connect_new == 1 && battle_config.guild_skill_relog_delay )
-			guild_block_skill(sd, battle_config.guild_skill_relog_delay);
-#endif
 	}
 	i = guild_getindex(g->guild, sd->status.account_id, sd->status.char_id);
 	if (i == -1)
@@ -2261,10 +2250,6 @@ int32 guild_gm_changed(int32 guild_id, uint32 account_id, uint32 char_id, time_t
 		g->guild.member[0].sd->state.gmaster_flag = 1;
 		clif_name_area(&g->guild.member[0].sd->bl);
 		//Block his skills to prevent abuse.
-#ifndef RENEWAL
-		if (battle_config.guild_skill_relog_delay)
-			guild_block_skill(g->guild.member[0].sd, battle_config.guild_skill_relog_delay);
-#endif
 	}
 
 	// announce the change to all guild members

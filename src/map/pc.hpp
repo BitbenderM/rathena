@@ -1229,7 +1229,6 @@ enum e_mado_type : uint16 {
 #define pcdb_checkid(class_) pcdb_checkid_sub((uint32)class_)
 
 // clientside display macros (values to the left/right of the "+")
-#ifdef RENEWAL
 	#define pc_leftside_atk(sd) ((sd)->battle_status.batk)
 	#define pc_rightside_atk(sd) ((sd)->battle_status.watk + (sd)->battle_status.watk2 + (sd)->battle_status.eatk)
 	#define pc_leftside_def(sd) ((sd)->battle_status.def2)
@@ -1245,26 +1244,6 @@ enum e_mado_type : uint16 {
 	status_calc_consumablematk(&(sd)->sc, 0) + \
 	status_calc_pseudobuff_matk((sd), &(sd)->sc, 0) \
 	)
-#else
-	#define pc_leftside_atk(sd) ((sd)->battle_status.batk + (sd)->battle_status.rhw.atk + (sd)->battle_status.lhw.atk)
-	#define pc_rightside_atk(sd) ((sd)->battle_status.rhw.atk2 + (sd)->battle_status.lhw.atk2)
-	#define pc_leftside_def(sd) ((sd)->battle_status.def)
-	#define pc_rightside_def(sd) ((sd)->battle_status.def2)
-	#define pc_leftside_mdef(sd) ((sd)->battle_status.mdef)
-	#define pc_rightside_mdef(sd) ( (sd)->battle_status.mdef2 - ((sd)->battle_status.vit / 2) )
-#define pc_leftside_matk(sd) \
-    (\
-    ((sd)->sc.getSCE(SC_MAGICPOWER) && (sd)->sc.getSCE(SC_MAGICPOWER)->val4) \
-		?((sd)->battle_status.matk_min * 100 + 50) / ((sd)->sc.getSCE(SC_MAGICPOWER)->val3+100) \
-        :(sd)->battle_status.matk_min \
-    )
-#define pc_rightside_matk(sd) \
-    (\
-    ((sd)->sc.getSCE(SC_MAGICPOWER) && (sd)->sc.getSCE(SC_MAGICPOWER)->val4) \
-		?((sd)->battle_status.matk_max * 100 + 50) / ((sd)->sc.getSCE(SC_MAGICPOWER)->val3+100) \
-        :(sd)->battle_status.matk_max \
-    )
-#endif
 
 struct s_attendance_reward {
 	t_itemid item_id;

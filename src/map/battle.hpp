@@ -87,11 +87,7 @@ enum e_bonus_chk_flag : uint8 {
 
 /// Damage structure
 struct Damage {
-#ifdef RENEWAL
 	int64 statusAtk, statusAtk2, weaponAtk, weaponAtk2, equipAtk, equipAtk2, masteryAtk, masteryAtk2, percentAtk, percentAtk2;
-#else
-	int64 basedamage; /// Right hand damage that a normal attack would deal
-#endif
 	int64 damage, /// Right hand damage
 		damage2; /// Left hand damage
 	enum e_damage_type type; /// Check clif_damage for type

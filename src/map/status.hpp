@@ -30,11 +30,7 @@ class status_change;
 /**
  * Max Refine available to your server
  **/
-#ifdef RENEWAL
 #	define MAX_REFINE 20
-#else
-#	define MAX_REFINE 10
-#endif
 
 /// Refine type
 enum e_refine_type : uint16{
@@ -3227,10 +3223,8 @@ struct weapon_atk {
 	unsigned short atk, atk2;
 	unsigned short range;
 	unsigned char ele;
-#ifdef RENEWAL
 	unsigned short matk;
 	unsigned char wlv;
-#endif
 };
 
 ///For holding basic status (which can be modified by status changes)
@@ -3248,10 +3242,8 @@ struct status_data {
 		eatk;
 	unsigned short
 		batk,
-#ifdef RENEWAL
 		watk,
 		watk2,
-#endif
 		matk_min, matk_max,
 		speed,
 		amotion, clientamotion, adelay, dmotion;
@@ -3367,9 +3359,6 @@ public:
 /**
  * The Storm Gust counter was dropped in renewal
  **/
-#ifndef RENEWAL
-	unsigned char sg_counter; //Storm gust counter (previous hits from storm gust)
-#endif
 private:
 	struct status_change_entry *data[SC_MAX];
 	std::pair<enum sc_type, struct status_change_entry *> lastStatus; // last-fetched status
@@ -3582,16 +3571,11 @@ int32 status_check_visibility(struct block_list *src, struct block_list *target)
 
 int32 status_change_spread(block_list *src, block_list *bl);
 
-#ifndef RENEWAL
-unsigned short status_base_matk_min(const struct status_data* status);
-unsigned short status_base_matk_max(const struct status_data* status);
-#else
 uint32 status_weapon_atk(struct weapon_atk wa, map_session_data *sd);
 unsigned short status_base_atk_min(struct block_list *bl, const struct status_data* status, int32 level);
 unsigned short status_base_atk_max(struct block_list *bl, const struct status_data* status, int32 level);
 unsigned short status_base_matk_min(struct block_list *bl, const struct status_data* status, int32 level);
 unsigned short status_base_matk_max(struct block_list *bl, const struct status_data* status, int32 level);
-#endif
 uint16 status_calc_consumablematk( status_change *sc, int32 matk );
 uint16 status_calc_pseudobuff_matk( map_session_data *sd, status_change *sc, int32 matk );
 

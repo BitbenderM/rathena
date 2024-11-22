@@ -2744,13 +2744,8 @@ int32 mob_dead(struct mob_data *md, struct block_list *src, int32 type)
 	) { //Experience calculation.
 		int32 bonus = 100; //Bonus on top of your share (common to all attackers).
 		int32 pnum = 0;
-#ifndef RENEWAL
-		if (md->sc.getSCE(SC_RICHMANKIM))
-			bonus += md->sc.getSCE(SC_RICHMANKIM)->val2;
-#else
 		if (sd && sd->sc.getSCE(SC_RICHMANKIM))
 			bonus += sd->sc.getSCE(SC_RICHMANKIM)->val2;
-#endif
 		if(sd) {
 			temp = status_get_class(&md->bl);
 			if(sd->sc.getSCE(SC_MIRACLE)) i = 2; //All mobs are Star Targets
@@ -2822,9 +2817,6 @@ int32 mob_dead(struct mob_data *md, struct block_list *src, int32 type)
 			}
 
 			if (map_getmapflag(m, MF_NOJOBEXP) || !md->db->job_exp
-#ifndef RENEWAL
-				|| md->dmglog[i].flag == MDLF_HOMUN // Homun earned job-exp is always lost.
-#endif
 			)
 				job_exp = 0;
 			else {
@@ -2858,13 +2850,8 @@ int32 mob_dead(struct mob_data *md, struct block_list *src, int32 type)
 					flag = 0;
 				}
 			}
-#ifdef RENEWAL
 			if (base_exp && tmpsd[i] && tmpsd[i]->hd)
 				hom_gainexp(tmpsd[i]->hd, base_exp * battle_config.homunculus_exp_gain / 100); // Homunculus only receive 10% of EXP
-#else
-			if (base_exp && md->dmglog[i].flag == MDLF_HOMUN) //tmpsd[i] is null if it has no homunc.
-				hom_gainexp(tmpsd[i]->hd, base_exp);
-#endif
 			if(flag) {
 				if(base_exp || job_exp) {
 					if( md->dmglog[i].flag != MDLF_PET || battle_config.pet_attack_exp_to_master ) {
@@ -4674,11 +4661,7 @@ uint64 MobDatabase::parseBodyNode(const ryml::NodeRef& node) {
 		if (!this->asUInt16(node, "Attack2", atk))
 			return 0;
 
-#ifdef RENEWAL
 		mob->status.rhw.matk = atk;
-#else
-		mob->status.rhw.atk2 = atk;
-#endif
 	}
 
 	if (this->nodeExists(node, "Defense")) {
@@ -5325,12 +5308,10 @@ static bool mob_read_sqldb_sub(std::vector<std::string> str) {
 			index += 4;
 	}
 
-#ifdef RENEWAL
 	if (!str[++index].empty())
 		node["Resistance"] << std::stoi(str[index]);
 	if (!str[++index].empty())
 		node["MagicResistance"] << std::stoi(str[index]);
-#endif
 
 	if( !modes.has_children() ){
 		node.remove_child( modes );
@@ -5365,9 +5346,7 @@ static int32 mob_read_sqldb(void)
 			"`mode_canmove`,`mode_looter`,`mode_aggressive`,`mode_assist`,`mode_castsensoridle`,`mode_norandomwalk`,`mode_nocast`,`mode_canattack`,`mode_castsensorchase`,`mode_changechase`,`mode_angry`,`mode_changetargetmelee`,`mode_changetargetchase`,`mode_targetweak`,`mode_randomtarget`,`mode_ignoremelee`,`mode_ignoremagic`,`mode_ignoreranged`,`mode_mvp`,`mode_ignoremisc`,`mode_knockbackimmune`,`mode_teleportblock`,`mode_fixeditemdrop`,`mode_detector`,`mode_statusimmune`,`mode_skillimmune`,"
 			"`mvpdrop1_item`,`mvpdrop1_rate`,`mvpdrop1_option`,`mvpdrop1_index`,`mvpdrop2_item`,`mvpdrop2_rate`,`mvpdrop2_option`,`mvpdrop2_index`,`mvpdrop3_item`,`mvpdrop3_rate`,`mvpdrop3_option`,`mvpdrop3_index`,"
 			"`drop1_item`,`drop1_rate`,`drop1_nosteal`,`drop1_option`,`drop1_index`,`drop2_item`,`drop2_rate`,`drop2_nosteal`,`drop2_option`,`drop2_index`,`drop3_item`,`drop3_rate`,`drop3_nosteal`,`drop3_option`,`drop3_index`,`drop4_item`,`drop4_rate`,`drop4_nosteal`,`drop4_option`,`drop4_index`,`drop5_item`,`drop5_rate`,`drop5_nosteal`,`drop5_option`,`drop5_index`,`drop6_item`,`drop6_rate`,`drop6_nosteal`,`drop6_option`,`drop6_index`,`drop7_item`,`drop7_rate`,`drop7_nosteal`,`drop7_option`,`drop7_index`,`drop8_item`,`drop8_rate`,`drop8_nosteal`,`drop8_option`,`drop8_index`,`drop9_item`,`drop9_rate`,`drop9_nosteal`,`drop9_option`,`drop9_index`,`drop10_item`,`drop10_rate`,`drop10_nosteal`,`drop10_option`,`drop10_index`"
-#ifdef RENEWAL
 			",`resistance`,`magic_resistance`"
-#endif
 			" FROM `%s`", mob_db_name[fi]) ) {
 			Sql_ShowDebug(mmysql_handle);
 			continue;

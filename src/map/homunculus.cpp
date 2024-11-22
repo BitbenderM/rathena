@@ -243,9 +243,7 @@ int32 hom_dead(struct homun_data *hd)
 	if (!sd) //unit remove map will invoke unit free
 		return 3;
 
-#ifdef RENEWAL
 	status_change_end(&sd->bl, SC_HOMUN_TIME);
-#endif
 
 	//Remove from map (if it has no intimacy, it is auto-removed from memory)
 	return 3;
@@ -284,9 +282,7 @@ int32 hom_vaporize(map_session_data *sd, int32 flag)
 	clif_hominfo(sd, sd->hd, 0);
 	hom_save(hd);
 
-#ifdef RENEWAL
 	status_change_end(&sd->bl, SC_HOMUN_TIME);
-#endif
 
 	return unit_remove_map(&hd->bl, CLR_OUTSIGHT);
 }
@@ -1133,9 +1129,7 @@ bool hom_call(map_session_data *sd)
 		//Warp him to master.
 		unit_warp(&hd->bl,sd->bl.m, sd->bl.x, sd->bl.y,CLR_OUTSIGHT);
 
-#ifdef RENEWAL
 	sc_start(&sd->bl, &sd->bl, SC_HOMUN_TIME, 100, 1, skill_get_time(AM_CALLHOMUN, 1));
-#endif
 
 	return true;
 }
@@ -1195,9 +1189,7 @@ int32 hom_recv_data(uint32 account_id, struct s_homunculus *sh, int32 flag)
 		clif_homskillinfoblock( *hd );
 		hom_init_timers(hd);
 
-#ifdef RENEWAL
 		sc_start(&sd->bl, &sd->bl, SC_HOMUN_TIME, 100, 1, skill_get_time(AM_CALLHOMUN, 1));
-#endif
 	}
 
 	return 1;
@@ -1288,9 +1280,7 @@ int32 hom_ressurect(map_session_data* sd, unsigned char per, short x, short y)
 
 	hd->ud.state.blockedmove = false;
 
-#ifdef RENEWAL
 	sc_start(&sd->bl, &sd->bl, SC_HOMUN_TIME, 100, 1, skill_get_time(AM_CALLHOMUN, 1));
-#endif
 
 	return status_revive(&hd->bl, per, 0);
 }

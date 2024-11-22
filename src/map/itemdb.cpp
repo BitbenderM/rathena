@@ -262,7 +262,6 @@ uint64 ItemDatabase::parseBodyNode(const ryml::NodeRef& node) {
 			item->atk = 0;
 	}
 
-#ifdef RENEWAL
 	if (this->nodeExists(node, "MagicAttack")) {
 		uint32 matk;
 
@@ -274,7 +273,6 @@ uint64 ItemDatabase::parseBodyNode(const ryml::NodeRef& node) {
 		if (!exists)
 			item->matk = 0;
 	}
-#endif
 
 	if (this->nodeExists(node, "Defense")) {
 		uint32 def;
@@ -1169,12 +1167,10 @@ void ItemDatabase::loadingFinished(){
 		}
 
 		if (item->type != IT_WEAPON) {
-#ifdef RENEWAL
 			if (item->matk > 0) {
 				ShowWarning( "Item %s is not a weapon. Defaulting MagicAttack to 0.\n", item->name.c_str() );
 				item->matk = 0;
 			}
-#endif
 			if (item->range > 0) {
 				ShowWarning( "Item %s is not a weapon. Defaulting Range to 0.\n", item->name.c_str() );
 				item->range = 0;
@@ -4132,7 +4128,6 @@ static bool itemdb_read_sqldb_sub(std::vector<std::string> str) {
 	if (!str[++index].empty())
 		rootNode["UnEquipScript"] << str[index];
 
-#ifdef RENEWAL
 	if (!str[++index].empty())
 		rootNode["MagicAttack"] << str[index];
 	if (!str[++index].empty())
@@ -4153,7 +4148,6 @@ static bool itemdb_read_sqldb_sub(std::vector<std::string> str) {
 		jobs["Spirit_Handler"] << (std::stoi(str[index]) ? "true" : "false");
 	if (!str[++index].empty())
 		rootNode["Gradable"] << (std::stoi(str[index]) ? "true" : "false");
-#endif
 
 	if( !jobs.has_children() ){
 		rootNode.remove_child( jobs );
@@ -4211,9 +4205,7 @@ static int32 itemdb_read_sqldb(void) {
 			"`flag_buyingstore`,`flag_deadbranch`,`flag_container`,`flag_uniqueid`,`flag_bindonequip`,`flag_dropannounce`,`flag_noconsume`,`flag_dropeffect`,"
 			"`delay_duration`,`delay_status`,`stack_amount`,`stack_inventory`,`stack_cart`,`stack_storage`,`stack_guildstorage`,`nouse_override`,`nouse_sitting`,"
 			"`trade_override`,`trade_nodrop`,`trade_notrade`,`trade_tradepartner`,`trade_nosell`,`trade_nocart`,`trade_nostorage`,`trade_noguildstorage`,`trade_nomail`,`trade_noauction`,`script`,`equip_script`,`unequip_script`"
-#ifdef RENEWAL
 			",`magic_attack`,`class_third`,`class_third_upper`,`class_third_baby`,`class_fourth`,`job_kagerouoboro`,`job_rebellion`,`job_summoner`,`job_spirit_handler`,`gradable`"
-#endif
 			" FROM `%s`", item_db_name[fi]) ) {
 			Sql_ShowDebug(mmysql_handle);
 			continue;
