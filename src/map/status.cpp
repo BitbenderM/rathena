@@ -5696,13 +5696,6 @@ void status_calc_bl_main(struct block_list& bl, std::bitset<SCB_MAX> flag)
 			matk_max += sd->right_weapon.overrefine - 1;
 		}
 
-		// Apply 16th Night buff (using iRO +[(Job Level / 2) x Skill Level])
-		if (sc && sc->getSCE(SC_IZAYOI)) {
-			uint8 izayoi_lvl = pc_checkskill(sd, KO_IZAYOI);
-			matk_min += izayoi_lvl ? (sd->status.job_level / 2) + izayoi_lvl : 0;
-			matk_max += izayoi_lvl ? (sd->status.job_level / 2) + izayoi_lvl : 0;
-		}
-
 		// Apply MATK % from skill Mystical Amplification
 		if (sc && sc->getSCE(SC_MAGICPOWER)) {
 			matk_min += matk_min * sc->getSCE(SC_MAGICPOWER)->val3 / 100;

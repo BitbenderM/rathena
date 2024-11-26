@@ -262,6 +262,7 @@ struct s_skill_db {
 	uint16 max;									///< Max level
 	int32 num[MAX_SKILL_LEVEL];					///< Number of hit
 	bool castcancel;							///< Cancel cast when being hit
+	bool noanimation;							///< Have skill not transmit animation start packet
 	uint16 cast_def_rate;						///< Def rate during cast a skill
 	e_battle_flag skill_type;					///< Skill type
 	int32 blewcount[MAX_SKILL_LEVEL];			///< Blew count
@@ -518,6 +519,7 @@ int32 skill_get_nocast( uint16 skill_id );
 int32 skill_get_unit_id( uint16 skill_id );
 int32 skill_get_unit_id2( uint16 skill_id );
 int32 skill_get_castcancel( uint16 skill_id );
+int32 skill_get_noanimation( uint16 skill_id );
 int32 skill_get_maxcount( uint16 skill_id ,uint16 skill_lv );
 int32 skill_get_blewcount( uint16 skill_id ,uint16 skill_lv );
 int32 skill_get_cooldown( uint16 skill_id, uint16 skill_lv );

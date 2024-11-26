@@ -29471,6 +29471,7 @@ Body:
     TargetType: Self
     DamageFlags:
       NoDamage: true
+    NoAnimation: true
     Hit: Single
     HitCount: 1
     CopyFlags:

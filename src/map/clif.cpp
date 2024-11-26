@@ -5965,6 +5965,10 @@ int32 clif_skill_damage(struct block_list *src,struct block_list *dst,t_tick tic
 	nullpo_ret(src);
 	nullpo_ret(dst);
 
+	// Skill set to not sent animation packet to client
+	if (skill_get_noanimation(skill_id))
+		return 0;
+
 	type = clif_calc_delay(type,div,damage,ddelay);
 
 	status_change* sc = status_get_sc( dst );
@@ -6121,6 +6125,11 @@ bool clif_skill_nodamage( block_list* src, block_list& dst, uint16 skill_id, int
 	p.level = std::min( static_cast<decltype(p.level)>( heal ), std::numeric_limits<decltype(p.level)>::max() );
 	p.targetAID = dst.id;
 	p.result = success;
+
+	// Skill set to not sent animation packet to client
+	if (skill_get_noanimation(skill_id))
+		return success;
+
 	if(src != nullptr){
 		p.srcAID = src->id;
 	}else{
@@ -6153,6 +6162,10 @@ void clif_skill_poseffect(struct block_list *src,uint16 skill_id,int32 val,int32
 	unsigned char buf[32];
 
 	nullpo_retv(src);
+
+	// Skill set to not sent animation packet to client
+	if (skill_get_noanimation(skill_id))
+		return;
 
 	WBUFW(buf,0)=0x117;
 	WBUFW(buf,2)=skill_id;

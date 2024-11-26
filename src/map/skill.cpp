@@ -185,6 +185,7 @@ int32 skill_get_time( uint16 skill_id ,uint16 skill_lv )             { skill_get
 int32 skill_get_time2( uint16 skill_id ,uint16 skill_lv )            { skill_get_lv(skill_id, skill_lv, skill_db.find(skill_id)->upkeep_time2); }
 int32 skill_get_castdef( uint16 skill_id )                           { skill_get(skill_id, skill_db.find(skill_id)->cast_def_rate); }
 int32 skill_get_castcancel( uint16 skill_id )                        { skill_get(skill_id, skill_db.find(skill_id)->castcancel); }
+int32 skill_get_noanimation( uint16 skill_id )                       { skill_get(skill_id, skill_db.find(skill_id)->noanimation); }
 int32 skill_get_maxcount( uint16 skill_id ,uint16 skill_lv )         { skill_get_lv(skill_id, skill_lv, skill_db.find(skill_id)->maxcount); }
 int32 skill_get_blewcount( uint16 skill_id ,uint16 skill_lv )        { skill_get_lv(skill_id, skill_lv, skill_db.find(skill_id)->blewcount); }
 int32 skill_get_castnodex( uint16 skill_id )                         { skill_get(skill_id, skill_db.find(skill_id)->castnodex); }
@@ -24130,6 +24131,18 @@ uint64 SkillDatabase::parseBodyNode(const ryml::NodeRef& node) {
 	} else {
 		if (!exists)
 			skill->sc = SC_NONE;
+	}
+
+	if (this->nodeExists(node, "NoAnimation")) {
+		bool active;
+
+		if (!this->asBool(node, "NoAnimation", active))
+			return 0;
+
+		skill->noanimation = active;
+	} else {
+		if (!exists)
+			skill->noanimation = false;
 	}
 
 	if (!exists) {
