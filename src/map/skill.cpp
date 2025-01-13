@@ -2281,6 +2281,10 @@ int32 skill_onskillusage(map_session_data *sd, struct block_list *bl, uint16 ski
 		if (it.lock)
 			continue;  // autospell already being executed
 
+		if (autocasted_skill_active(&sd->bl, it.id))
+			ShowDebug("Skill %d is already being autocasted by %d\n", it.id, sd->bl.id);
+			continue; // autospell already being executed
+
 		uint16 skill = it.id;
 
 		sd->state.autocast = 1; //set this to bypass sd->canskill_tick check
@@ -2330,6 +2334,12 @@ int32 skill_onskillusage(map_session_data *sd, struct block_list *bl, uint16 ski
 				skill_castend_damage_id(&sd->bl, tbl, skill, skill_lv, tick, 0);
 				break;
 		}
+		
+		ShowDebug("Skill %d is being autocasted by %d\n. Setting bl to autocasted", skill, sd->bl.id);
+		skill_unit *su = (skill_unit*)&sd->bl;
+		std::shared_ptr<s_skill_unit_group> sg = su->group;
+		sg->autocasted = true;
+
 		it.lock = false;
 		sd->state.autocast = 0;
 	}
@@ -4711,6 +4721,17 @@ static int32 skill_active_reverberation(struct block_list *bl, va_list ap) {
 		sg->unit_id = UNT_USED_TRAPS;
 	}
 	return 1;
+}
+
+static bool autocasted_skill_active(struct block_list *bl, uint16 skill_id) {
+	if (bl->type != BL_SKILL)
+		return 0;
+	
+	skill_unit *su = (skill_unit*)bl;
+	nullpo_ret(su);
+
+	std::shared_ptr<s_skill_unit_group> sg = su->group;
+	return (su->alive && sg && sg->skill_id == skill_id && sg->autocasted);
 }
 
 /**

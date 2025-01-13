@@ -394,6 +394,7 @@ struct s_skill_unit_group {
 	int32 unit_count, /// Number of unit at this group
 		alive_count; /// Number of alive unit
 	t_itemid item_id; /// Store item used.
+	bool autocasted; /// Skill is autocasted
 	struct skill_unit *unit; /// Skill Unit
 	struct {
 		unsigned ammo_consume : 1; // Need to consume ammo
